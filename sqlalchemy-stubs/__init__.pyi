@@ -131,9 +131,6 @@ from . import ext as ext
 from . import orm as orm
 from . import sql as sql
 from . import util as util
-from . import cprocessors as cprocessors
-from . import cresultproxy as cresultproxy
-from . import cutils as cutils
 from . import events as events
 from . import exc as exc
 from . import inspection as inspection
