@@ -8,7 +8,7 @@ from . import (
     sybase as sybase
 )
 
-from .. import util
+from sqlalchemy import util
 
 registry: util.PluginLoader
 plugins: util.PluginLoader
