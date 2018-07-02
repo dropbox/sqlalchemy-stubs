@@ -10,8 +10,8 @@ def find_stub_files():
         for file in files:
             if file.endswith('.pyi'):
                 if os.path.sep in root:
-                    root = root.split(os.path.sep, 1)[-1]
-                    file = os.path.join(root, file)
+                    sub_root = root.split(os.path.sep, 1)[-1]
+                    file = os.path.join(sub_root, file)
                 result.append(file)
     return result
 
