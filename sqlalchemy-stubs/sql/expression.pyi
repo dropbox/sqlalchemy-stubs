@@ -1,4 +1,4 @@
-from .functions import func as func, modifier as modifier, Function as Function
+from .functions import func as func, modifier as modifier, Function as Function, FunctionElement as FunctionElement
 from .elements import (
     ClauseElement as ClauseElement,
     ColumnElement as ColumnElement,
@@ -98,10 +98,6 @@ insert = Insert
 update = Update
 delete = Delete
 funcfilter = FunctionFilter
-
-def false() -> False_: ...
-def true() -> True_: ...
-def funcfilter(func, *criterion) -> FunctionFilter: ...
 
 # old names for compatibility
 _Executable = Executable
