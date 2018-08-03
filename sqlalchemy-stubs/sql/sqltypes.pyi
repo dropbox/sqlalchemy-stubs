@@ -1,7 +1,7 @@
 from typing import Any, Optional, TypeVar, Dict, List
 from .type_api import TypeEngine as TypeEngine, TypeDecorator as TypeDecorator
 from .base import SchemaEventTarget as SchemaEventTarget
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 
 _T = TypeVar('_T')
 
@@ -173,7 +173,7 @@ class Boolean(TypeEngine[bool], SchemaType):
     def bind_processor(self, dialect): ...
     def result_processor(self, dialect, coltype): ...
 
-class Interval(_DateAffinity, TypeDecorator):
+class Interval(_DateAffinity, TypeDecorator[timedelta]):
     impl: Any = ...
     epoch: Any = ...
     native: Any = ...
