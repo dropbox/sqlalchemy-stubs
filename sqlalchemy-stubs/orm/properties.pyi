@@ -1,6 +1,7 @@
 from typing import Any
 from .interfaces import StrategizedProperty, PropComparator
 from .. import util
+from .relationships import RelationshipProperty as RelationshipProperty
 
 class ColumnProperty(StrategizedProperty):
     strategy_wildcard_key: str = ...
