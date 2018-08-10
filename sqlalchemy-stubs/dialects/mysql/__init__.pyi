@@ -40,3 +40,5 @@ from .base import (
     VARCHAR as VARCHAR,
     YEAR as YEAR,
 )
+
+from .mysqldb import dialect as dialect
