@@ -1,4 +1,4 @@
-from typing import Any, Optional, TypeVar, Dict, List, Text
+from typing import Any, Optional, TypeVar, Dict, List, Text as typing_Text
 from .type_api import TypeEngine as TypeEngine, TypeDecorator as TypeDecorator
 from .base import SchemaEventTarget as SchemaEventTarget
 from datetime import datetime, date, time, timedelta
@@ -14,7 +14,7 @@ class Concatenable(object):
 class Indexable(object):
     comparator_factory: Any = ...
 
-class String(Concatenable, TypeEngine[Text]):
+class String(Concatenable, TypeEngine[typing_Text]):
     __visit_name__: str = ...
     length: Any = ...
     collation: Any = ...
