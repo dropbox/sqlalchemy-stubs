@@ -6,7 +6,7 @@ Mypy plugin and stubs for SQLAlchemy
 [![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 
 External contributions to the project should be subject to
-Dropbox Contributor License Agreement (CLA).
+[Dropbox Contributor License Agreement (CLA)](https://opensource.dropbox.com/cla/).
 
 --------------------------------
 Copyright (c) 2018 Dropbox, Inc.
