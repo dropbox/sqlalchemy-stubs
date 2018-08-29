@@ -50,7 +50,8 @@ The package is currently in pre-alpha stage. See [issue tracker](https://github.
 for bugs and missing features. If you want to contribute, a good place to start is
 [`help-wanted` label](https://github.com/dropbox/sqlalchemy-stubs/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22).
 
-The 0.1 version will be released after we will fix issues #2, #5, and #7.
+The 0.1 version will be released after we will fix issues [#2](https://github.com/dropbox/sqlalchemy-stubs/issues/2),
+[#5](https://github.com/dropbox/sqlalchemy-stubs/issues/5), and [#7](https://github.com/dropbox/sqlalchemy-stubs/issues/7).
 The long term goal is to be able to infer types for more complex situations
 like correctly inferring columns in most compound queries.
 
