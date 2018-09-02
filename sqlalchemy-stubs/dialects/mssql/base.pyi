@@ -1,32 +1,32 @@
 from typing import Any, Optional
-from ... import types as sqltypes
+from ... import types as _sqltypes
 from ...types import INTEGER as INTEGER, BIGINT as BIGINT, SMALLINT as SMALLINT, DECIMAL as DECIMAL, NUMERIC as NUMERIC, \
     FLOAT as FLOAT, DATETIME as DATETIME, DATE as DATE, BINARY as BINARY, \
     TEXT as TEXT, VARCHAR as VARCHAR, NVARCHAR as NVARCHAR, CHAR as CHAR, NCHAR as NCHAR
 
-class REAL(sqltypes.REAL):
+class REAL(_sqltypes.REAL):
     __visit_name__: str = ...
 
-class TINYINT(sqltypes.Integer):
+class TINYINT(_sqltypes.Integer):
     __visit_name__: str = ...
 
-class TIME(sqltypes.TIME):
+class TIME(_sqltypes.TIME):
     __visit_name__: str = ...
 
 class _DateTimeBase(object): ...
 
-class SMALLDATETIME(_DateTimeBase, sqltypes.DateTime):
+class SMALLDATETIME(_DateTimeBase, _sqltypes.DateTime):
     __visit_name__: str = ...
 
-class DATETIME2(_DateTimeBase, sqltypes.DateTime):
+class DATETIME2(_DateTimeBase, _sqltypes.DateTime):
     __visit_name__: str = ...
 
-class DATETIMEOFFSET(sqltypes.TypeEngine):
+class DATETIMEOFFSET(_sqltypes.TypeEngine[Any]):
     __visit_name__: str = ...
 
     def __init__(self, precision: Optional[int] = None, **kwargs: Any) -> None: ...
 
-class TIMESTAMP(sqltypes._Binary):
+class TIMESTAMP(_sqltypes._Binary):
     __visit_name__: str = ...
 
     def __init__(self, convert_int: bool = False) -> None: ...
@@ -34,29 +34,29 @@ class TIMESTAMP(sqltypes._Binary):
 class ROWVERSION(TIMESTAMP):
     __visit_name__: str = ...
 
-class NTEXT(sqltypes.UnicodeText):
+class NTEXT(_sqltypes.UnicodeText):
     __visit_name__: str = ...
 
-class VARBINARY(sqltypes.VARBINARY, sqltypes.LargeBinary):
+class VARBINARY(_sqltypes.VARBINARY, _sqltypes.LargeBinary):
     __visit_name__: str = ...
 
-class IMAGE(sqltypes.LargeBinary):
+class IMAGE(_sqltypes.LargeBinary):
     __visit_name__: str = ...
 
-class XML(sqltypes.Text):
+class XML(_sqltypes.Text):
     __visit_name__: str = ...
 
-class BIT(sqltypes.TypeEngine):
+class BIT(_sqltypes.TypeEngine[int]):
     __visit_name__: str = ...
 
-class MONEY(sqltypes.TypeEngine):
+class MONEY(_sqltypes.TypeEngine[Any]):
     __visit_name__: str = ...
 
-class SMALLMONEY(sqltypes.TypeEngine):
+class SMALLMONEY(_sqltypes.TypeEngine[Any]):
     __visit_name__: str = ...
 
-class UNIQUEIDENTIFIER(sqltypes.TypeEngine):
+class UNIQUEIDENTIFIER(_sqltypes.TypeEngine[str]):
     __visit_name__: str = ...
 
-class SQL_VARIANT(sqltypes.TypeEngine):
+class SQL_VARIANT(_sqltypes.TypeEngine[Any]):
     __visit_name__: str = ...
