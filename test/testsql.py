@@ -48,7 +48,8 @@ class SQLDataSuite(DataSuite):
         # split lines, remove newlines, and remove directory of test case
         for line in (out + err).splitlines():
             if line.startswith(test_temp_dir + os.sep):
-                output.append(line[len(test_temp_dir + os.sep):].rstrip("\r\n"))
+                output.append(line[len(test_temp_dir + os.sep):].rstrip("\r\n").replace('.py',
+                                                                                        ''))
             else:
                 output.append(line.rstrip("\r\n"))
         # Remove temp file.
