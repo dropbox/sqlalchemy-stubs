@@ -14,7 +14,7 @@ from mypy import api
 
 class SQLDataSuite(DataSuite):
     files = ['sqlalchemy-basics.test']
-    data_prefix = '/home/ivan/Devel/sqlalchemy-stubs/test-data'
+    data_prefix = '/home/ivan/Devel/sqlalchemy-stubs/test/test-data'
 
     def run_case(self, testcase: DataDrivenTestCase) -> None:
 
