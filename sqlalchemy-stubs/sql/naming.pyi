@@ -1,5 +1,7 @@
 from typing import Any
 
+from .elements import conv as conv
+
 class ConventionDict(object):
     const: Any = ...
     table: Any = ...

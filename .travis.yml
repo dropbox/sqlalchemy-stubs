@@ -20,5 +20,6 @@ install:
 script: |
   set -e
   export PYTHONPATH=`pwd`/external/mypy
+  pip install -U .
   pytest
  
