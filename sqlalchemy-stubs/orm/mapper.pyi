@@ -1,5 +1,6 @@
 from typing import Any, Optional
 from .interfaces import InspectionAttr
+from .base import class_mapper as class_mapper
 
 NO_ATTRIBUTE: Any = ...
 
