@@ -2,19 +2,25 @@
 
 import os
 import os.path
+import sys
 
 import pytest  # type: ignore  # no pytest in typeshed
 
-from mypy.defaults import PYTHON3_VERSION
 from mypy.test.config import test_temp_dir
 from mypy.test.data import DataDrivenTestCase, DataSuite
 from mypy.test.helpers import assert_string_arrays_equal
 from mypy import api
 
+this_file_dir = os.path.dirname(os.path.realpath(__file__))
+prefix = os.path.dirname(this_file_dir)
+
+# Locations of test data files such as test case descriptions (.test).
+test_data_prefix = os.path.join(prefix, 'test', 'test-data')
+
 
 class SQLDataSuite(DataSuite):
     files = ['sqlalchemy-basics.test']
-    data_prefix = '/home/ivan/Devel/sqlalchemy-stubs/test/test-data'
+    data_prefix = test_data_prefix
 
     def run_case(self, testcase: DataDrivenTestCase) -> None:
 
@@ -27,7 +33,8 @@ class SQLDataSuite(DataSuite):
         if py2:
             mypy_cmdline.append('--py2')
         else:
-            mypy_cmdline.append('--python-version={}'.format('.'.join(map(str, (3, 4)))))
+            mypy_cmdline.append('--python-version={}'.format('.'.join(map(str,
+                                                                          sys.version_info[:2]))))
 
         # Write the program to a file.
         program_path = os.path.join(test_temp_dir, 'main.py')
