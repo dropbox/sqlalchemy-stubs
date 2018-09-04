@@ -1,0 +1,66 @@
+[case testTypeClause]
+from typing import Any
+
+from sqlalchemy import Integer
+from sqlalchemy.sql.elements import TypeClause
+
+clause = TypeClause(Integer())
+reveal_type(clause.type)  # E: Revealed type is 'sqlalchemy.sql.sqltypes.Integer*'
+[out]
+
+[case testNull]
+from typing import Any
+
+from sqlalchemy.sql.elements import Null
+
+null = Null()
+reveal_type(null.type)  # E: Revealed type is 'sqlalchemy.sql.sqltypes.NullType'
+[out]
+
+[case testFalse_]
+from typing import Any
+
+from sqlalchemy.sql.elements import False_
+
+false_ = False_()
+reveal_type(false_.type)  # E: Revealed type is 'sqlalchemy.sql.sqltypes.Boolean'
+[out]
+
+[case testTrue_]
+from typing import Any
+
+from sqlalchemy.sql.elements import True_
+
+true_ = True_()
+reveal_type(true_.type)  # E: Revealed type is 'sqlalchemy.sql.sqltypes.Boolean'
+[out]
+
+[case testTupleInferred]
+from typing import Any
+
+from sqlalchemy import Boolean
+from sqlalchemy.sql.elements import Tuple, Null, False_
+
+tp = Tuple(Null(), False_())
+reveal_type(tp.type)  # E: Revealed type is 'sqlalchemy.sql.sqltypes.NullType*'
+[out]
+
+[case testTupleExplicit]
+from typing import Any
+
+from sqlalchemy import Boolean
+from sqlalchemy.sql.elements import Tuple, Null, False_
+
+tp = Tuple(Null(), False_(), type_=Boolean)
+reveal_type(tp.type)  # E: Revealed type is 'sqlalchemy.sql.sqltypes.Boolean*'
+[out]
+
+[case testTupleExplicitInstance]
+from typing import Any
+
+from sqlalchemy import Boolean
+from sqlalchemy.sql.elements import Tuple, Null, False_
+
+tp = Tuple(Null(), False_(), type_=Boolean())
+reveal_type(tp.type)  # E: Revealed type is 'sqlalchemy.sql.sqltypes.Boolean*'
+[out]
