@@ -23,6 +23,9 @@ setup(name='sqlalchemy-stubs',
       author_email='levkivskyi@gmail.com',
       license='MIT License',
       py_modules=[],
+      install_requires=[
+          'typing-extensions>=3.6.5'
+      ],
       packages=['sqlalchemy-stubs'],
       package_data={'sqlalchemy-stubs': find_stub_files()}
 )
