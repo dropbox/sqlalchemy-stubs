@@ -3,6 +3,7 @@
 Mypy plugin and stubs for SQLAlchemy
 ====================================
 
+[![Build Status](https://travis-ci.org/dropbox/sqlalchemy-stubs.svg?branch=master)](https://travis-ci.org/dropbox/sqlalchemy-stubs)
 [![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 
 This package contains [type stubs](https://www.python.org/dev/peps/pep-0561/) and soon a
