@@ -9,6 +9,7 @@ import pytest  # type: ignore  # no pytest in typeshed
 from mypy.test.config import test_temp_dir
 from mypy.test.data import DataDrivenTestCase, DataSuite
 from mypy.test.helpers import assert_string_arrays_equal
+from mypy.util import try_find_python2_interpreter
 from mypy import api
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
@@ -31,6 +32,9 @@ class SQLDataSuite(DataSuite):
         ]
         py2 = testcase.name.lower().endswith('python2')
         if py2:
+            if try_find_python2_interpreter() is None:
+                pytest.skip()
+                return
             mypy_cmdline.append('--py2')
         else:
             mypy_cmdline.append('--python-version={}'.format('.'.join(map(str,

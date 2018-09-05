@@ -12,7 +12,12 @@ jobs:
     script: |
       set -e
       export PYTHONPATH=`pwd`/external/mypy
-      pip install -U .
+      pytest
+  - name: "run test suite with python 3.7"
+    python: 3.7
+    script: |
+      set -e
+      export PYTHONPATH=`pwd`/external/mypy
       pytest
   - name: "run flake8 on stubs"
     python: 3.6
@@ -24,5 +29,7 @@ before_install: |
   # Upgrade pip, setuptools, and wheel
   pip install -U pip setuptools wheel
 
-install:
-  - pip install -r external/mypy/test-requirements.txt
+install: |
+  pip install -r external/mypy/test-requirements.txt
+  pip install -U .
+  python2 -m pip install --user -U .
