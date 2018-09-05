@@ -31,6 +31,9 @@ class SQLDataSuite(DataSuite):
         ]
         py2 = testcase.name.lower().endswith('python2')
         if py2:
+            if sys.version_info[0] >= 3:
+                pytest.skip()
+                return
             mypy_cmdline.append('--py2')
         else:
             mypy_cmdline.append('--python-version={}'.format('.'.join(map(str,
