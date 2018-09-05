@@ -9,6 +9,7 @@ import pytest  # type: ignore  # no pytest in typeshed
 from mypy.test.config import test_temp_dir
 from mypy.test.data import DataDrivenTestCase, DataSuite
 from mypy.test.helpers import assert_string_arrays_equal
+from mypy.util import try_find_python2_interpreter
 from mypy import api
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
@@ -22,8 +23,7 @@ class SQLDataSuite(DataSuite):
     files = ['sqlalchemy-basics.test']
     data_prefix = test_data_prefix
 
-    def run_case(self, testcase):
-        # type: (DataDrivenTestCase) -> None
+    def run_case(self, testcase: DataDrivenTestCase) -> None:
 
         assert testcase.old_cwd is not None, "test was not properly set up"
         mypy_cmdline = [
@@ -32,7 +32,7 @@ class SQLDataSuite(DataSuite):
         ]
         py2 = testcase.name.lower().endswith('python2')
         if py2:
-            if sys.version_info[0] >= 3:
+            if try_find_python2_interpreter() is None:
                 pytest.skip()
                 return
             mypy_cmdline.append('--py2')

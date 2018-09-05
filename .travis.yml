@@ -7,12 +7,6 @@ sudo: required
 
 jobs:
   include:
-  - name: "run test suite with python 2.7"
-    python: 2.7
-    script: |
-      set -e
-      export PYTHONPATH=`pwd`/external/mypy
-      pytest
   - name: "run test suite with python 3.6"
     python: 3.6
     script: |
@@ -38,3 +32,4 @@ before_install: |
 install: |
   pip install -r external/mypy/test-requirements.txt
   pip install -U .
+  python2 -m pip install -U .
