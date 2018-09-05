@@ -22,7 +22,8 @@ class SQLDataSuite(DataSuite):
     files = ['sqlalchemy-basics.test']
     data_prefix = test_data_prefix
 
-    def run_case(self, testcase: DataDrivenTestCase) -> None:
+    def run_case(self, testcase):
+        # type: (DataDrivenTestCase) -> None
 
         assert testcase.old_cwd is not None, "test was not properly set up"
         mypy_cmdline = [
