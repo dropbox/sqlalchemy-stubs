@@ -19,7 +19,9 @@ jobs:
       set -e
       export PYTHONPATH=`pwd`/external/mypy
       pytest
-  - name: "run direct typecheck" |
+  - name: "run direct typecheck"
+    python: 3.6
+    script: |
       mkdir tmpd
       cp -r sqlalchemy-stubs tmpd/sqlalchemy
       cd tmpd
