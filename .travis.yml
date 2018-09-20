@@ -11,23 +11,20 @@ jobs:
     python: 3.6
     script: |
       set -e
-      export PYTHONPATH=`pwd`/external/mypy
       pytest
   - name: "run test suite with python 3.7"
     python: 3.7
     script: |
       set -e
-      export PYTHONPATH=`pwd`/external/mypy
       pytest
   - name: "run direct typecheck"
     python: 3.6
     script: |
+      set -e
       mkdir tmpd
       cp -r sqlalchemy-stubs tmpd/sqlalchemy
       cd tmpd
       python3 -m mypy -p sqlalchemy
-      cd ..
-      rm -rf tmpd
   - name: "run flake8 on stubs"
     python: 3.6
     script: |
@@ -42,3 +39,4 @@ install: |
   pip install -r external/mypy/test-requirements.txt
   pip install -U .
   python2 -m pip install --user -U .
+  export PYTHONPATH=`pwd`/external/mypy
