@@ -19,6 +19,13 @@ jobs:
       set -e
       export PYTHONPATH=`pwd`/external/mypy
       pytest
+  - name: "run direct typecheck" |
+      mkdir tmpd
+      cp -r sqlalchemy-stubs tmpd/sqlalchemy
+      cd tmpd
+      python3 -m mypy -p sqlalchemy
+      cd ..
+      rm -rf tmpd
   - name: "run flake8 on stubs"
     python: 3.6
     script: |
