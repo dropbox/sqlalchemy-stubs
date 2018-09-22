@@ -64,3 +64,30 @@ from sqlalchemy.sql.elements import Tuple, Null, False_
 tp = Tuple(Null(), False_(), type_=Boolean())
 reveal_type(tp.type)  # E: Revealed type is 'sqlalchemy.sql.sqltypes.Boolean*'
 [out]
+
+[case testCase]
+from typing import Any, List
+
+from sqlalchemy import Column, case
+
+column: Column[Any]
+lst: List[Any]
+reveal_type(case(value=column, whens={item: i for i, item in enumerate(lst)}))  # E: Revealed type is 'sqlalchemy.sql.elements.Case[builtins.int*]'
+[out]
+
+[case testCast]
+from typing import Any, Set
+
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, String, ARRAY, cast
+
+Base: Any = declarative_base()
+
+class Model(Base):
+    __tablename__ = 'users'
+    tags = Column(ARRAY(String(16)))
+
+tags: Set[str] = set()
+reveal_type(cast(tags, Model.tags.type))  # E: Revealed type is 'sqlalchemy.sql.elements.Cast[sqlalchemy.sql.type_api.TypeEngine*[builtins.list*[builtins.str*]]]'
+[out]
+
