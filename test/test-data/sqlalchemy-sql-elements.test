@@ -5,7 +5,7 @@ from sqlalchemy import Integer
 from sqlalchemy.sql.elements import TypeClause
 
 clause = TypeClause(Integer())
-reveal_type(clause.type)  # E: Revealed type is 'sqlalchemy.sql.sqltypes.Integer*'
+reveal_type(clause.type)  # E: Revealed type is 'sqlalchemy.sql.type_api.TypeEngine[builtins.int*]'
 [out]
 
 [case testNull]
@@ -42,7 +42,7 @@ from sqlalchemy import Boolean
 from sqlalchemy.sql.elements import Tuple, Null, False_
 
 tp = Tuple(Null(), False_())
-reveal_type(tp.type)  # E: Revealed type is 'sqlalchemy.sql.sqltypes.NullType*'
+reveal_type(tp.type)  # E: Revealed type is 'sqlalchemy.sql.type_api.TypeEngine[None]'
 [out]
 
 [case testTupleExplicit]
@@ -52,7 +52,7 @@ from sqlalchemy import Boolean
 from sqlalchemy.sql.elements import Tuple, Null, False_
 
 tp = Tuple(Null(), False_(), type_=Boolean)
-reveal_type(tp.type)  # E: Revealed type is 'sqlalchemy.sql.sqltypes.Boolean*'
+reveal_type(tp.type)  # E: Revealed type is 'sqlalchemy.sql.type_api.TypeEngine[builtins.bool*]'
 [out]
 
 [case testTupleExplicitInstance]
@@ -62,7 +62,7 @@ from sqlalchemy import Boolean
 from sqlalchemy.sql.elements import Tuple, Null, False_
 
 tp = Tuple(Null(), False_(), type_=Boolean())
-reveal_type(tp.type)  # E: Revealed type is 'sqlalchemy.sql.sqltypes.Boolean*'
+reveal_type(tp.type)  # E: Revealed type is 'sqlalchemy.sql.type_api.TypeEngine[builtins.bool*]'
 [out]
 
 [case testCase]
@@ -88,6 +88,6 @@ class Model(Base):
     tags = Column(ARRAY(String(16)))
 
 tags: Set[str] = set()
-reveal_type(cast(tags, Model.tags.type))  # E: Revealed type is 'sqlalchemy.sql.elements.Cast[sqlalchemy.sql.type_api.TypeEngine*[builtins.list*[builtins.str*]]]'
+reveal_type(cast(tags, Model.tags.type))  # E: Revealed type is 'sqlalchemy.sql.elements.Cast[builtins.list*[builtins.str*]]'
 [out]
 
