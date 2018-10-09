@@ -45,6 +45,21 @@ stable version as:
 pip install -U sqlalchemy-stubs
 ```
 
+## Development Setup
+
+First, clone the repo and cd into it, like in _Installation_, then:
+```
+git submodule update --init --recursive
+pip install -r external/mypy/test-requirements.txt
+pip install -e external/mypy
+pip install -e .
+```
+
+Then, to run the tests, simply:
+```
+pytest
+```
+
 ## Development status
 
 The package is currently in pre-alpha stage. See [issue tracker](https://github.com/dropbox/sqlalchemy-stubs/issues)
