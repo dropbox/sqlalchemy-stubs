@@ -29,7 +29,7 @@ class _StringType(sqltypes.String):
                  ascii: bool = ..., binary: bool = ...,
                  unicode: bool = ..., national: bool = ..., **kw) -> None: ...
 
-class _MatchType(sqltypes.Float, sqltypes.MatchType):
+class _MatchType(sqltypes.Float, sqltypes.MatchType):  # type: ignore  # Float has incompatible members with MatchType
     def __init__(self, **kw) -> None: ...
 
 class NUMERIC(_NumericType, sqltypes.NUMERIC):
