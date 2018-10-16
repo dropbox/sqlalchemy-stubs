@@ -50,9 +50,7 @@ pip install -U sqlalchemy-stubs
 First, clone the repo and cd into it, like in _Installation_, then:
 ```
 git submodule update --init --recursive
-pip install -r external/mypy/test-requirements.txt
-pip install -e external/mypy
-pip install -e .
+pip install -r dev-requirements.txt
 ```
 
 Then, to run the tests, simply:
