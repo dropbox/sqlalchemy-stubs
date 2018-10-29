@@ -1,0 +1,38 @@
+[case testStringInit]
+from typing import Any
+from sqlalchemy.sql.sqltypes import String
+
+s1 = String(length=10, collation='utf8', convert_unicode=False, _warn_on_bytestring=True)
+s2 = String(length=10, collation='utf8', convert_unicode='force', unicode_error='strict')
+s3 = String(length=10, collation='utf8', convert_unicode=False, unicode_error='strict')
+[out]
+main:6: error: No overload variant of "String" matches argument types "int", "str", "bool", "str"
+main:6: note: Possible overload variant:
+main:6: note:     def __init__(self, length: Optional[int] = ..., collation: Optional[str] = ..., convert_unicode: str = ..., unicode_error: Optional[str] = ..., _warn_on_bytestring: bool = ...) -> String
+main:6: note:     <1 more non-matching overload not shown>
+
+[case testUnicodeInit]
+from typing import Any
+from sqlalchemy.sql.sqltypes import Unicode
+
+u1 = Unicode(length=10, collation='utf8', convert_unicode=False, _warn_on_bytestring=True)
+u2 = Unicode(length=10, collation='utf8', convert_unicode='force', unicode_error='strict')
+u3 = Unicode(length=10, collation='utf8', convert_unicode=False, unicode_error='strict')
+[out]
+main:6: error: No overload variant of "Unicode" matches argument types "int", "str", "bool", "str"
+main:6: note: Possible overload variant:
+main:6: note:     def __init__(self, length: Optional[int] = ..., collation: Optional[str] = ..., convert_unicode: str = ..., unicode_error: Optional[str] = ..., _warn_on_bytestring: bool = ...) -> Unicode
+main:6: note:     <1 more non-matching overload not shown>
+
+[case testUnicodeTextInit]
+from typing import Any
+from sqlalchemy.sql.sqltypes import UnicodeText
+
+u1 = UnicodeText(length=10, collation='utf8', convert_unicode=False, _warn_on_bytestring=True)
+u2 = UnicodeText(length=10, collation='utf8', convert_unicode='force', unicode_error='strict')
+u3 = UnicodeText(length=10, collation='utf8', convert_unicode=False, unicode_error='strict')
+[out]
+main:6: error: No overload variant of "UnicodeText" matches argument types "int", "str", "bool", "str"
+main:6: note: Possible overload variant:
+main:6: note:     def __init__(self, length: Optional[int] = ..., collation: Optional[str] = ..., convert_unicode: str = ..., unicode_error: Optional[str] = ..., _warn_on_bytestring: bool = ...) -> UnicodeText
+main:6: note:     <1 more non-matching overload not shown>
