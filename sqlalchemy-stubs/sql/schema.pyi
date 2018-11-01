@@ -1,6 +1,6 @@
 from typing import Any, Optional, Set, Generic, TypeVar, overload, Type
 from . import visitors
-from .base import SchemaEventTarget as SchemaEventTarget, DialectKWArgs as DialectKWArgs
+from .base import SchemaEventTarget as SchemaEventTarget, DialectKWArgs as DialectKWArgs, ColumnCollection
 from .elements import ColumnClause as ColumnClause
 from .selectable import TableClause as TableClause
 from .type_api import TypeEngine
@@ -25,6 +25,7 @@ class Table(DialectKWArgs, SchemaItem, TableClause):
     indexes: Set[Any]
     constraints: Set[Any]
     foreign_keys: Set[Any]
+    primary_key: PrimaryKeyConstraint  # type: ignore  # TableClause.primary_key defines this as "ColumnSet"
     fullname: str
     implicit_returning: bool
     comment: Any
@@ -33,7 +34,7 @@ class Table(DialectKWArgs, SchemaItem, TableClause):
     def quote_schema(self): ...
     def __init__(self, *args, **kw) -> None: ...
     @property
-    def foreign_key_constraints(self): ...
+    def foreign_key_constraints(self) -> Set[ForeignKeyConstraint]: ...
     @property
     def key(self): ...
     @property
@@ -194,7 +195,7 @@ class Constraint(DialectKWArgs, SchemaItem):
     def copy(self, **kw): ...
 
 class ColumnCollectionMixin(object):
-    columns: Any = ...
+    columns: ColumnCollection = ...
     def __init__(self, *columns, **kw) -> None: ...
 
 class ColumnCollectionConstraint(ColumnCollectionMixin, Constraint):
