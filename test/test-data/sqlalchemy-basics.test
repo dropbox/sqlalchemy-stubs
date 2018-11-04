@@ -34,6 +34,33 @@ reveal_type(user.id)  # E: Revealed type is 'builtins.int*'
 reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[builtins.str*]'
 [out]
 
+[case testColumnFieldsRelationship]
+from typing import Any
+
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm.properties import RelationshipProperty
+
+Base: Any = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+    other: RelationshipProperty[Other] = relationship('Other')
+
+class Other(Base):
+    __tablename__ = 'other'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+
+user: User
+reveal_type(user.other)  # E: Revealed type is 'main.Other*'
+reveal_type(User.other)  # E: Revealed type is 'sqlalchemy.orm.relationships.RelationshipProperty[main.Other*]'
+reveal_type(user.other.name)  # E: Revealed type is 'builtins.str*'
+[out]
+
 [case testColumnFieldsInferred_python2]
 from typing import Any
 
