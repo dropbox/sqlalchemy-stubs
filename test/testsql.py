@@ -14,6 +14,7 @@ from mypy import api
 
 this_file_dir = os.path.dirname(os.path.realpath(__file__))
 prefix = os.path.dirname(this_file_dir)
+inipath = os.path.abspath(os.path.join(prefix, 'test'))
 
 # Locations of test data files such as test case descriptions (.test).
 test_data_prefix = os.path.join(prefix, 'test', 'test-data')
@@ -31,6 +32,7 @@ class SQLDataSuite(DataSuite):
         mypy_cmdline = [
             '--show-traceback',
             '--no-silence-site-packages',
+            '--config-file={}/sqlalchemy.ini'.format(inipath),
         ]
         py2 = testcase.name.lower().endswith('python2')
         if py2:

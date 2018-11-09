@@ -22,10 +22,10 @@ setup(name='sqlalchemy-stubs',
       author='Ivan Levkivskyi',
       author_email='levkivskyi@gmail.com',
       license='MIT License',
-      py_modules=[],
+      py_modules=['sqlmypy'],
       install_requires=[
           'typing-extensions>=3.6.5'
       ],
       packages=['sqlalchemy-stubs'],
-      package_data={'sqlalchemy-stubs': find_stub_files()}
+      package_data={'sqlalchemy-stubs': find_stub_files()},
 )
