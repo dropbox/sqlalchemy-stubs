@@ -1,5 +1,5 @@
 from mypy.plugin import Plugin
-from mypy.nodes import NameExpr, Expression, StrExpr, TypeInfo
+from mypy.nodes import NameExpr, Expression, StrExpr, TypeInfo, ClassDef, Block, SymbolTable, SymbolTableNode, GDEF
 from mypy.types import UnionType, NoneTyp, Instance, Type, CallableType, AnyType, TypeOfAny
 from mypy.erasetype import erase_typevars
 
@@ -7,6 +7,8 @@ from typing import Optional, TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
     from mypy.plugin import FunctionContext
+
+DECL_BASES = set()
 
 
 class BasicSQLAlchemyPlugin(Plugin):
@@ -16,6 +18,24 @@ class BasicSQLAlchemyPlugin(Plugin):
         if fullname == 'sqlalchemy.orm.relationships.RelationshipProperty':
             return relationship_hook
         return None
+
+    def get_dynamic_class_hook(self, fullname):
+        if fullname == 'sqlalchemy.ext.declarative.api.declarative_base':
+            return decl_info_hook
+        return None
+
+
+def decl_info_hook(ctx):
+    class_def = ClassDef(ctx.name, Block([]))
+    class_def.fullname = ctx.api.qualified_name(ctx.name)
+
+    info = TypeInfo(SymbolTable(), class_def, ctx.api.cur_mod_id)
+    class_def.info = info
+    obj = ctx.api.builtin_type('builtins.object')
+    info.mro = [info, obj.type]
+    info.bases = [obj]
+    ctx.api.add_symbol_table_node(ctx.name, SymbolTableNode(GDEF, info))
+    DECL_BASES.add(class_def.fullname)
 
 
 def relationship_hook(ctx: 'FunctionContext') -> Type:
