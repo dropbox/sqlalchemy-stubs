@@ -1,4 +1,4 @@
-from typing import Any, Optional, Generic, TypeVar, Union, overload
+from typing import Any, Optional, Generic, TypeVar, Union, overload, Type
 from .interfaces import (
     MANYTOMANY as MANYTOMANY,
     MANYTOONE as MANYTOONE,
@@ -51,7 +51,24 @@ class RelationshipProperty(StrategizedProperty, Generic[_T]):
     order_by: Any = ...
     back_populates: Any = ...
     backref: Any = ...
-    def __init__(self, argument, secondary: Optional[Any] = ...,
+    @overload
+    def __init__(self, argument: Type[_T], secondary: Optional[Any] = ...,
+                 primaryjoin: Optional[Any] = ..., secondaryjoin: Optional[Any] = ...,
+                 foreign_keys: Optional[Any] = ..., uselist: Optional[Any] = ...,
+                 order_by: Any = ..., backref: Optional[Any] = ...,
+                 back_populates: Optional[Any] = ..., post_update: bool = ..., cascade: Union[str, bool] = ...,
+                 extension: Optional[Any] = ..., viewonly: bool = ...,
+                 lazy: Optional[Union[str, bool]] = ..., collection_class: Optional[Any] = ...,
+                 passive_deletes: bool = ..., passive_updates: bool = ...,
+                 remote_side: Optional[Any] = ..., enable_typechecks: bool = ...,
+                 join_depth: Optional[Any] = ..., comparator_factory: Optional[Any] = ...,
+                 single_parent: bool = ..., innerjoin: bool = ..., distinct_target_key: Optional[Any] = ...,
+                 doc: Optional[Any] = ..., active_history: bool = ..., cascade_backrefs: bool = ...,
+                 load_on_pending: bool = ..., bake_queries: bool = ...,
+                 _local_remote_pairs: Optional[Any] = ..., query_class: Optional[Any] = ...,
+                 info: Optional[Any] = ...) -> None: ...
+    @overload
+    def __init__(self, argument: Any, secondary: Optional[Any] = ...,
                  primaryjoin: Optional[Any] = ..., secondaryjoin: Optional[Any] = ...,
                  foreign_keys: Optional[Any] = ..., uselist: Optional[Any] = ...,
                  order_by: Any = ..., backref: Optional[Any] = ...,
