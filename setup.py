@@ -22,7 +22,7 @@ setup(name='sqlalchemy-stubs',
       author='Ivan Levkivskyi',
       author_email='levkivskyi@gmail.com',
       license='MIT License',
-      py_modules=['sqlmypy'],
+      py_modules=['sqlmypy', 'sqltyping'],
       install_requires=[
           'typing-extensions>=3.6.5'
       ],
