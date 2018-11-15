@@ -49,6 +49,8 @@ class User(Base):
     name = Column(String())
     other = relationship('Other')
 
+reveal_type(User.__init__)
+
 user: User
 reveal_type(user.other)  # E: Revealed type is 'main.Other*'
 reveal_type(User.other)  # E: Revealed type is 'sqlalchemy.orm.relationships.RelationshipProperty[main.Other*]'
@@ -67,6 +69,7 @@ class Other(Base):
 from typing import Any
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
+reveal_type(Base)
 [out]
 
 [case testTableColumns]
