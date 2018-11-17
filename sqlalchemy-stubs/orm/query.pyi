@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Sequence
 from . import interfaces
 from .base import InspectionAttr
 from .session import Session
