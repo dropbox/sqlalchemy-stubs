@@ -1,4 +1,5 @@
-from mypy.plugin import Plugin
+from mypy.plugin import Plugin, FunctionContext, ClassDefContext
+from mypy.plugins.common import add_method
 from mypy.nodes import(
     NameExpr, Expression, StrExpr, TypeInfo, ClassDef, Block, SymbolTable, SymbolTableNode, GDEF,
     AssignmentStmt, CallExpr, RefExpr, Argument, Var, ARG_OPT
@@ -9,17 +10,13 @@ from mypy.types import (
 from mypy.erasetype import erase_typevars
 from mypy.maptype import map_instance_to_supertype
 
-from typing import Optional, TYPE_CHECKING, Callable, Set, List
-
-if TYPE_CHECKING:
-    from mypy.plugin import FunctionContext, ClassDefContext
+from typing import Optional, Callable, Set, List
 
 DECL_BASES = set()  # type: Set[str]
-DECL_BASES.add('base.Base')
 
 
 class BasicSQLAlchemyPlugin(Plugin):
-    def get_function_hook(self, fullname: str) -> Optional[Callable[['FunctionContext'], Type]]:
+    def get_function_hook(self, fullname: str) -> Optional[Callable[[FunctionContext], Type]]:
         if fullname == 'sqlalchemy.sql.schema.Column':
             return column_hook
         if fullname == 'sqlalchemy.orm.relationships.RelationshipProperty':
@@ -31,12 +28,12 @@ class BasicSQLAlchemyPlugin(Plugin):
             return decl_info_hook
         return None
 
-    def get_class_decorator_hook(self, fullname: str) -> Optional[Callable[['ClassDefContext'], None]]:
+    def get_class_decorator_hook(self, fullname: str) -> Optional[Callable[[ClassDefContext], None]]:
         if fullname == 'sqlalchemy.ext.declarative.api.as_declarative':
             return decl_deco_hook
         return None
 
-    def get_base_class_hook(self, fullname: str) -> Optional[Callable[['ClassDefContext'], None]]:
+    def get_base_class_hook(self, fullname: str) -> Optional[Callable[[ClassDefContext], None]]:
         if fullname in DECL_BASES:
             return add_init_hook
         return None
@@ -69,8 +66,7 @@ def _get_column_argument(call: CallExpr, name: str) -> Optional[Expression]:
     return None
 
 
-def add_init_hook(ctx: 'ClassDefContext') -> None:
-    from mypy.plugins.common import _add_method
+def add_init_hook(ctx: ClassDefContext) -> None:
     if '__init__' in ctx.cls.info.names:
         # Don't override existing definition.
         return
@@ -115,10 +111,10 @@ def add_init_hook(ctx: 'ClassDefContext') -> None:
         var = Var(name, typ)
         i_arg = Argument(variable=var, type_annotation=typ, initializer=None, kind=ARG_OPT)
         init_args.append(i_arg)
-    _add_method(ctx, '__init__', init_args, NoneTyp())
+    add_method(ctx, '__init__', init_args, NoneTyp())
 
 
-def decl_deco_hook(ctx: 'ClassDefContext') -> None:
+def decl_deco_hook(ctx: ClassDefContext) -> None:
     DECL_BASES.add(ctx.cls.fullname)
 
 
@@ -135,7 +131,7 @@ def decl_info_hook(ctx):
     DECL_BASES.add(class_def.fullname)
 
 
-def relationship_hook(ctx: 'FunctionContext') -> Type:
+def relationship_hook(ctx: FunctionContext) -> Type:
     assert isinstance(ctx.default_return_type, Instance)
     arg_type = ctx.arg_types[0][0]
     arg = ctx.args[0][0]
@@ -159,7 +155,7 @@ def relationship_hook(ctx: 'FunctionContext') -> Type:
     return ctx.default_return_type
 
 
-def column_hook(ctx: 'FunctionContext') -> Type:
+def column_hook(ctx: FunctionContext) -> Type:
     assert isinstance(ctx.default_return_type, Instance)
     # This is very fragile, need to update the plugin API.
     if len(ctx.args) in (5, 6):  # overloads with and without the name
