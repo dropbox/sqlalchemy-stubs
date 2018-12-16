@@ -1,0 +1,62 @@
+[case testSelectableSelect]
+from sqlalchemy import table, select, column, func
+
+t = table('user', column('id'), column('name'), column('description'), column('articles'))
+s = select(columns=[column('id'), column('name')],
+           whereclause=column('name') == 'foo',
+           from_obj=t,
+           group_by=column('name'),
+           having=func.count(column('articles')) > 2,
+           order_by=column('id'),
+           distinct=True,
+           correlate=False,
+           limit=10,
+           offset=30)
+[out]
+
+[case testSelectableSelectIterables]
+from sqlalchemy import table, select, column, alias, func
+
+t = table('user', column('id'), column('name'), column('description'), column('articles'))
+st = table('stuff', column('id'))
+a = alias(t, 'my_user')
+s = select(columns={column('id'), column('name'), a},
+           whereclause='name == "foo"',
+           from_obj=[t, 'stuff'],
+           group_by=[column('name'), 'description'],
+           having='count(articles) > 2',
+           order_by=[column('id'), 'name', 1])
+[out]
+
+[case testSelectableSelectLimit]
+from sqlalchemy import select
+
+select().limit(None)
+select().limit(10)
+[out]
+
+[case testSelectableSelectOffset]
+from sqlalchemy import select
+
+select().offset(None)
+select().offset(10)
+[out]
+
+[case testSelectableSelectOrderByGroupBy]
+from sqlalchemy import select, column
+
+select() \
+    .order_by('name', column('description')) \
+    .group_by('name', column('description'))
+[out]
+
+[case testSelectableTableClauseInsert]
+from typing import Any, Dict, Union
+from sqlalchemy import table, column, String
+
+t = table('user', column('id'), column('name'), column('description'), column('articles'))
+t.insert({'name': 'foo'})
+t.insert({column('name', String): 'foo'})
+t.insert({column('name', String): 'foo',
+          'description': 'bar'})
+[out]

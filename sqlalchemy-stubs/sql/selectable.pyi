@@ -162,8 +162,10 @@ class TableClause(Immutable, FromClause):
     def description(self) -> str: ...
     def append_column(self, c: ColumnClause[Any]): ...
     def get_children(self, column_collections: bool = ..., **kwargs: Any) -> List[ColumnClause[Any]]: ...
-    def insert(self, values: Optional[Mapping[Union[str, ColumnClause], Any]] = ..., inline: bool = ...,
-               **kwargs: Any) -> Insert: ...
+    def insert(self, values: Optional[Union[Mapping[str, Any],
+                                            Mapping[ColumnClause[Any], Any],
+                                            Mapping[Union[str, ColumnClause[Any]], Any]]] = ...,
+               inline: bool = ..., **kwargs: Any) -> Insert: ...
     def update(self, whereclause: Optional[Union[str, bool, Visitable]] = ...,
                values: Optional[Mapping[Union[str, ColumnClause], Any]] = ...,
                inline: bool = ..., **kwargs: Any) -> Update: ...
@@ -195,8 +197,10 @@ class GenerativeSelect(SelectBase):
     use_labels: bool = ...
     for_update: Union[str, bool] = ...
     def __init__(self, use_labels: bool = ..., for_update: bool = ..., limit: Optional[int] = ...,
-                 offset: Optional[int] = ..., order_by: Optional[Union[Iterable[Union[int, str, Visitable]]]] = ...,
-                 group_by: Optional[Iterable[Union[int, str, Visitable]]] = ..., bind: Optional[Union[Engine, Connection]] = ...,
+                 offset: Optional[int] = ...,
+                 order_by: Optional[Union[int, str, Visitable, Iterable[Union[int, str, Visitable]]]] = ...,
+                 group_by: Optional[Union[int, str, Visitable, Iterable[Union[int, str, Visitable]]]] = ...,
+                 bind: Optional[Union[Engine, Connection]] = ...,
                  autocommit: Optional[bool] = ...) -> None: ...
     def with_for_update(self: _GS, nowait: bool = ..., read: bool = ...,
                         of: Optional[Union[TextClause, Sequence[ColumnClause[Any]]]] = ...,
@@ -244,10 +248,10 @@ class Select(HasPrefixes, HasSuffixes, GenerativeSelect):
     __visit_name__: str = ...
     def __init__(self, columns: Optional[Iterable[Union[ColumnElement[Any], FromClause]]] = ...,
                  whereclause: Optional[Union[str, bool, Visitable]] = ...,
-                 from_obj: Optional[Iterable[Union[str, Selectable]]] = ...,
-                 group_by: Optional[Iterable[Union[int, str, Visitable]]] = ...,
+                 from_obj: Optional[Union[str, Selectable, Iterable[Union[str, Selectable]]]] = ...,
+                 group_by: Optional[Union[int, str, Visitable, Iterable[Union[int, str, Visitable]]]] = ...,
                  having: Optional[Union[str, bool, Visitable]] = ...,
-                 order_by: Optional[Iterable[Union[int, str, Visitable]]] = ...,
+                 order_by: Optional[Union[int, str, Visitable, Iterable[Union[int, str, Visitable]]]] = ...,
                  distinct: bool = ..., correlate: bool = ..., limit: Optional[int] = ..., offset: Optional[int] = ...,
                  use_labels: bool = ..., autocommit: bool = ..., bind: Union[Engine, Connection] = ...,
                  prefixes: Optional[Any] = ..., suffixes: Optional[Any] = ...,
