@@ -2,6 +2,7 @@ from typing import (
     Any, Optional, Union, Type, TypeVar, Generic, Callable, List, Dict, Set, Iterator, Iterable, Tuple as _TupleType,
     Mapping, overload, Text
 )
+from typing_extensions import Protocol
 from . import operators
 from .. import util
 from .visitors import Visitable as Visitable
@@ -14,6 +15,7 @@ from .selectable import TextAsFrom, TableClause
 from .functions import FunctionElement
 
 _T = TypeVar('_T')
+_T_contra = TypeVar('_T_contra', contravariant=True)
 _V = TypeVar('_V')
 _U = TypeVar('_U')
 
@@ -142,13 +144,20 @@ class True_(ColumnElement[bool]):
 
 _CL = TypeVar('_CL', bound=ClauseList)
 
+class _LiteralAsTextCallback(Protocol[_T_contra]):
+    def __call__(self, clause: _T_contra) -> List[ClauseElement]: ...
+
 class ClauseList(ClauseElement):
     __visit_name__: str = ...
     operator: Any = ...
     group: bool = ...
     group_contents: bool = ...
     clauses: List[ClauseElement] = ...
-    def __init__(self, *clauses: ClauseElement, operator: Callable[..., Any] = ..., group: bool = ...,
+    @overload
+    def __init__(self, *clauses: _T, operator: Callable[..., Any] = ..., group: bool = ..., group_contents: bool = ...,
+                 _literal_as_text: _LiteralAsTextCallback[_T] = ..., **kwargs: Any) -> None: ...
+    @overload
+    def __init__(self, *clauses: Optional[Union[str, bool, Visitable]], operator: Callable[..., Any] = ..., group: bool = ...,
                  group_contents: bool = ..., **kwargs: Any) -> None: ...
     def __iter__(self) -> Iterator[ClauseElement]: ...
     def __len__(self) -> int: ...
