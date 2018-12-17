@@ -1,6 +1,8 @@
 from typing import Any, Optional, Union, Iterable, Tuple, TypeVar, Generic, overload
 from .base import Executable as Executable, ColumnCollection
-from .elements import ColumnElement as ColumnElement, Grouping, ClauseList, ColumnElement, Over, WithinGroup, FunctionFilter
+from .elements import (
+    ColumnElement as ColumnElement, Grouping, ClauseList, ColumnElement, Over, WithinGroup, FunctionFilter, AsBoolean
+)
 from .selectable import FromClause as FromClause, Alias, Select
 from . import util as sqlutil
 from .visitors import VisitableType as VisitableType
@@ -12,6 +14,8 @@ from ..engine.result import ResultProxy
 _T = TypeVar('_T')
 
 def register_function(identifier, fn, package: str = ...): ...
+
+_FE = TypeVar('_FE', bound=FunctionElement)
 
 class FunctionElement(Executable, ColumnElement[_T], FromClause, Generic[_T]):  # type: ignore
     # ColumnElement.foreign_keys() is not compatible with FromClause.foreign_keys()
@@ -35,7 +39,7 @@ class FunctionElement(Executable, ColumnElement[_T], FromClause, Generic[_T]):  
                                             ColumnElement[Any],
                                             Iterable[Union[str, ColumnElement[Any]]]]) -> WithinGroup[_T]: ...
     @overload
-    def filter(self) -> FunctionElement[_T]: ...
+    def filter(self: _FE) -> _FE: ...
     @overload
     def filter(self, criteria: Any, *criterion: Any) -> FunctionFilter[_T]: ...
     def get_children(self, **kwargs: Any) -> Tuple[Grouping[Any]]: ...
@@ -44,7 +48,7 @@ class FunctionElement(Executable, ColumnElement[_T], FromClause, Generic[_T]):  
     def select(self) -> Select: ...  # type: ignore  # incompatible with FromClause.select
     def scalar(self) -> Any: ...  # type: ignore  # incompatible with Executable.scalar
     def execute(self) -> ResultProxy: ...  # type: ignore  # incompatible with Executable.execute
-    def self_group(self, against: Optional[Any] = ...) -> Union[ColumnElement[_T], Grouping[_T]]: ...
+    def self_group(self: _FE, against: Optional[Any] = ...) -> Union[AsBoolean, Grouping[_T], _FE]: ...
 
 class _FunctionGenerator(object):
     opts: Any = ...
