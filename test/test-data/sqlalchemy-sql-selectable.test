@@ -57,6 +57,6 @@ from sqlalchemy import table, column, String
 t = table('user', column('id'), column('name'), column('description'), column('articles'))
 t.insert({'name': 'foo'})
 t.insert({column('name', String): 'foo'})
-t.insert({column('name', String): 'foo',
-          'description': 'bar'})
+# t.insert({column('name', String): 'foo',
+#          'description': 'bar'})
 [out]
