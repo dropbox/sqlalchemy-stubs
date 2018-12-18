@@ -23,7 +23,8 @@ class SQLDataSuite(DataSuite):
     files = ['sqlalchemy-basics.test',
              'sqlalchemy-sql-elements.test',
              'sqlalchemy-sql-sqltypes.test',
-             'sqlalchemy-sql-selectable.test']
+             'sqlalchemy-sql-selectable.test',
+             'sqlalchemy-sql-schema.test']
     data_prefix = test_data_prefix
 
     def run_case(self, testcase: DataDrivenTestCase) -> None:
