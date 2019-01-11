@@ -1,0 +1,16 @@
+[case testSchemaMetaData]
+from sqlalchemy import MetaData, create_engine
+from sqlalchemy.engine import Connection
+from sqlalchemy.engine.url import make_url
+
+m = MetaData()
+e = create_engine('postgresql://foo')
+c = Connection(e)
+m.bind = 'postgresql://foo'
+m.bind = make_url('postgresql://foo')
+reveal_type(m.bind)  # E: Revealed type is 'Union[sqlalchemy.engine.base.Engine, sqlalchemy.engine.base.Connection, None]'
+m.bind = e
+reveal_type(m.bind)  # E: Revealed type is 'sqlalchemy.engine.base.Engine'
+m.bind = c
+reveal_type(m.bind)  # E: Revealed type is 'sqlalchemy.engine.base.Connection'
+[out]

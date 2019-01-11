@@ -1,3 +1,4 @@
+from typing import Any
 from . import default as default
 
 from .interfaces import (
@@ -7,7 +8,7 @@ from .interfaces import (
     ExecutionContext as ExecutionContext,
     ExceptionContext as ExceptionContext,
     Compiled as Compiled,
-    TypeCompiler as TypeCompiler
+    TypeCompiler as TypeCompiler,
 )
 
 from .base import (
@@ -29,5 +30,5 @@ from .result import (
     RowProxy as RowProxy,
 )
 
-def create_engine(*args, **kwargs): ...
-def engine_from_config(configuration, prefix: str = ..., **kwargs): ...
+def create_engine(*args: Any, **kwargs: Any) -> Engine: ...
+def engine_from_config(configuration: Any, prefix: str = ..., **kwargs: Any) -> Engine: ...
