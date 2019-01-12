@@ -138,7 +138,10 @@ class SchemaDropper(DDLBase):
 
 def sort_tables(tables: Sequence[Table], skip_fn: Optional[Callable[[ForeignKey], bool]] = ...,
                 extra_dependencies: Optional[Sequence[Tuple[Table, Table]]] = ...) -> List[Table]: ...
+
+
+_SortResultType = List[Tuple[Optional[Table], Union[Set[ForeignKeyConstraint], List[ForeignKeyConstraint]]]]
+
 def sort_tables_and_constraints(tables: Sequence[Table],
                                 filter_fn: Optional[Callable[[ForeignKeyConstraint], Optional[bool]]] = ...,
-                                extra_dependencies: Optional[Sequence[Tuple[Table, Table]]] = ...) -> \
-    List[Tuple[Optional[Table], Union[Set[ForeignKeyConstraint], List[ForeignKeyConstraint]]]]: ...
+                                extra_dependencies: Optional[Sequence[Tuple[Table, Table]]] = ...) -> _SortResultType: ...
