@@ -2,11 +2,10 @@ from mypy.plugin import Plugin, FunctionContext, ClassDefContext
 from mypy.plugins.common import add_method
 from mypy.nodes import(
     NameExpr, Expression, StrExpr, TypeInfo, ClassDef, Block, SymbolTable, SymbolTableNode, GDEF,
-    CallExpr, Argument, Var, ARG_STAR2
+    Argument, Var, ARG_STAR2
 )
 from mypy.types import (
-    UnionType, NoneTyp, Instance, Type, CallableType, AnyType, TypeOfAny, Overloaded,
-    UninhabitedType
+    UnionType, NoneTyp, Instance, Type, AnyType, TypeOfAny, UninhabitedType
 )
 
 from typing import Optional, Callable, Dict, TYPE_CHECKING
@@ -248,7 +247,7 @@ def relationship_hook(ctx: FunctionContext) -> Type:
             any = AnyType(TypeOfAny.special_form)
             new_arg = Instance(sym.node, [any] * len(sym.node.defn.type_vars))
         else:
-            ctx.api.fail('Cannot find model"{}"'.format(name), ctx.context)
+            ctx.api.fail('Cannot find model "{}"'.format(name), ctx.context)
             ctx.api.note('Only imported models can be found', ctx.context)
             ctx.api.note('Use "if TYPE_CHECKING: ..." to avoid import cycles', ctx.context)
             new_arg = AnyType(TypeOfAny.from_error)
