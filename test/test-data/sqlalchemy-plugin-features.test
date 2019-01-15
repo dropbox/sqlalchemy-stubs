@@ -1,0 +1,24 @@
+[case testModelInitColumnDeclared]
+# flags: --strict-optional
+from sqlalchemy import Column, Integer, String
+from base import Base
+from typing import Optional
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+
+oi: Optional[int]
+os: Optional[str]
+
+User()
+User(1, 2)  # E: Too many arguments for "User"
+User(id=int(), name=str())
+User(id=oi)  # E: Incompatible type for "id" of "User" (got "Optional[int]", expected "int")
+User(name=os)
+
+[file base.py]
+from sqlalchemy.ext.declarative import declarative_base
+Base = declarative_base()
+[out]
