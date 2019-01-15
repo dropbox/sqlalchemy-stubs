@@ -50,7 +50,7 @@ reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[buil
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, RelationshipProperty
 from base import Base
 if TYPE_CHECKING:
     from other import Other
@@ -59,7 +59,8 @@ class User(Base):
     __tablename__ = 'users'
     id = Column(Integer(), primary_key=True)
     name = Column(String())
-    other = relationship('Other')
+    other = relationship('Other', uselist=False)
+    another: RelationshipProperty[Other] = relationship('Other')
 
 user: User
 reveal_type(user.other)  # E: Revealed type is 'other.Other*'

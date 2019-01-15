@@ -5,9 +5,9 @@ from mypy.nodes import(
     CallExpr, Argument, Var, ARG_STAR2
 )
 from mypy.types import (
-    UnionType, NoneTyp, Instance, Type, CallableType, AnyType, TypeOfAny, Overloaded
+    UnionType, NoneTyp, Instance, Type, CallableType, AnyType, TypeOfAny, Overloaded,
+    UninhabitedType
 )
-from mypy.erasetype import erase_typevars
 
 from typing import Optional, Callable, Dict, TYPE_CHECKING
 if TYPE_CHECKING:
@@ -210,27 +210,59 @@ def column_hook(ctx: FunctionContext) -> Type:
 
 
 def relationship_hook(ctx: FunctionContext) -> Type:
+    """Support basic use cases for relationships.
+
+    Examples:
+        from sqlalchemy.orm import relationship
+
+        from one import OneModel
+        if TYPE_CHECKING:
+            from other import OtherModel
+
+        class User(Base):
+            __tablename__ = 'users'
+            id = Column(Integer(), primary_key=True)
+            one = relationship(OneModel)
+            other = relationship("OtherModel")
+
+    This also tries to infer the type argument for 'RelationshipProperty'
+    using the 'uselist' flag.
+    """
     assert isinstance(ctx.default_return_type, Instance)
-    arg_type = ctx.arg_types[0][0]
-    arg = ctx.args[0][0]
-    if isinstance(arg_type, CallableType) and arg_type.is_type_obj():
-        return Instance(ctx.default_return_type.type, [erase_typevars(arg_type.ret_type)],
-                        line=ctx.default_return_type.line,
-                        column=ctx.default_return_type.column)
-    elif isinstance(arg, StrExpr):
+    original_type_arg = ctx.default_return_type.args[0]
+    arg = get_argument_by_name(ctx, 'argument')
+    uselist_arg = get_argument_by_name(ctx, 'uselist')
+    if not isinstance(original_type_arg, UninhabitedType):
+        # The type was inferred using the stub signature.
+        return ctx.default_return_type
+    if isinstance(arg, StrExpr):
         name = arg.value
-        # Private API, but probably needs to be public.
+        # Private API for local lookup, but probably needs to be public.
         try:
-            sym = ctx.api.lookup_qualified(name)
+            sym = ctx.api.lookup_qualified(name)  # type: Optional[SymbolTableNode]
         except (KeyError, AssertionError):
-            return ctx.default_return_type
+            sym = None
         if sym and isinstance(sym.node, TypeInfo):
+            if not is_declarative(sym.node):
+                ctx.api.fail('First argument to relationship must be a model', ctx.context)
             any = AnyType(TypeOfAny.special_form)
             new_arg = Instance(sym.node, [any] * len(sym.node.defn.type_vars))
-            return Instance(ctx.default_return_type.type, [new_arg],
-                            line=ctx.default_return_type.line,
-                            column=ctx.default_return_type.column)
-    return ctx.default_return_type
+        else:
+            ctx.api.fail('Cannot find model"{}"'.format(name), ctx.context)
+            ctx.api.note('Only imported models can be found', ctx.context)
+            ctx.api.note('Use "if TYPE_CHECKING: ..." to avoid import cycles', ctx.context)
+            new_arg = AnyType(TypeOfAny.from_error)
+    else:
+        new_arg = original_type_arg
+    if uselist_arg:
+        if parse_bool(uselist_arg):
+            new_arg = ctx.api.named_generic_type('typing.Iterable', [new_arg])
+    else:
+        ctx.api.fail('Cannot figure out kind of relationship', ctx.context)
+        ctx.api.note('Either add an annotation or use an explicit "uselist" flag', ctx.context)
+    return Instance(ctx.default_return_type.type, [new_arg],
+                    line=ctx.default_return_type.line,
+                    column=ctx.default_return_type.column)
 
 
 # We really need to add this to TypeChecker API
