@@ -71,33 +71,6 @@ class BasicSQLAlchemyPlugin(Plugin):
         return None
 
 
-def _get_column_argument(call: CallExpr, name: str) -> Optional[Expression]:
-    """Return the expression for the specific argument."""
-    # This is super sketchy.
-    callee_node = call.callee.node
-    callee_node_type = callee_node.names['__init__'].type
-    assert isinstance(callee_node_type, Overloaded)
-    if isinstance(call.args[0], StrExpr):
-        overload_index = 0
-    else:
-        overload_index = 1
-    callee_type = callee_node_type.items()[overload_index]
-    if not callee_type:
-        return None
-
-    argument = callee_type.argument_by_name(name)
-    if not argument:
-        return None
-    assert argument.name
-
-    for i, (attr_name, attr_value) in enumerate(zip(call.arg_names, call.args)):
-        if argument.pos is not None and not attr_name and i == argument.pos - 1:
-            return attr_value
-        if attr_name == argument.name:
-            return attr_value
-    return None
-
-
 def add_init_hook(ctx: ClassDefContext) -> None:
     """Add a dummy __init__() to a model and record it is generated.
 
@@ -179,10 +152,61 @@ def model_hook(ctx: FunctionContext) -> Type:
             continue
         # Using private API to simplify life.
         ctx.api.check_subtype(actual_type, expected_types[actual_name],
-                             ctx.context,
-                             'Incompatible type for "{}" of "{}"'.format(actual_name, model.name()),
-                             'got', 'expected')
+                              ctx.context,
+                              'Incompatible type for "{}" of "{}"'.format(actual_name, model.name()),
+                              'got', 'expected')
     return ctx.default_return_type
+
+
+def get_argument_by_name(ctx: FunctionContext, name: str) -> Optional[Expression]:
+    """Return the expression for the specific argument.
+
+    This helper should only be used with non-star arguments.
+    """
+    if name not in ctx.callee_arg_names:
+        return None
+    idx = ctx.callee_arg_names.index(name)
+    args = ctx.args[idx]
+    if len(args) != 1:
+        # Either an error or no value passed.
+        return None
+    return args[0]
+
+
+def column_hook(ctx: FunctionContext) -> Type:
+    """Infer better types for Column calls.
+
+    Examples:
+        Column(String) -> Column[Optional[str]]
+        Column(String, primary_key=True) -> Column[str]
+        Column(String, nullable=False) -> Column[str]
+        Column(String, default=...) -> Column[str]
+        Column(String, default=..., nullable=True) -> Column[Optional[str]]
+
+    TODO: check the type of 'default'.
+    """
+    assert isinstance(ctx.default_return_type, Instance)
+
+    nullable_arg = get_argument_by_name(ctx, 'nullable')
+    primary_arg = get_argument_by_name(ctx, 'primary_key')
+    default_arg = get_argument_by_name(ctx, 'default')
+
+    if nullable_arg:
+        nullable = parse_bool(nullable_arg)
+    else:
+        if primary_arg:
+            nullable = not parse_bool(primary_arg)
+        else:
+            nullable = default_arg is None
+    # TODO: Add support for literal types.
+
+    if not nullable:
+        return ctx.default_return_type
+    assert len(ctx.default_return_type.args) == 1
+    arg_type = ctx.default_return_type.args[0]
+    return Instance(ctx.default_return_type.type, [UnionType([arg_type, NoneTyp()])],
+                    line=ctx.default_return_type.line,
+                    column=ctx.default_return_type.column)
 
 
 def relationship_hook(ctx: FunctionContext) -> Type:
@@ -207,36 +231,6 @@ def relationship_hook(ctx: FunctionContext) -> Type:
                             line=ctx.default_return_type.line,
                             column=ctx.default_return_type.column)
     return ctx.default_return_type
-
-
-def column_hook(ctx: FunctionContext) -> Type:
-    assert isinstance(ctx.default_return_type, Instance)
-    # This is very fragile, need to update the plugin API.
-    if len(ctx.args) in (5, 6):  # overloads with and without the name
-        nullable_index = len(ctx.args) - 2
-        primary_index = len(ctx.args) - 3
-    else:
-        # Something new, give up.
-        return ctx.default_return_type
-
-    nullable_args = ctx.args[nullable_index]
-    primary_args = ctx.args[primary_index]
-    if nullable_args:
-        nullable = parse_bool(nullable_args[0])
-    else:
-        if primary_args:
-            nullable = not parse_bool(primary_args[0])
-        else:
-            nullable = True
-    # TODO: Add support for literal types.
-
-    if not nullable:
-        return ctx.default_return_type
-    assert len(ctx.default_return_type.args) == 1
-    arg_type = ctx.default_return_type.args[0]
-    return Instance(ctx.default_return_type.type, [UnionType([arg_type, NoneTyp()])],
-                    line=ctx.default_return_type.line,
-                    column=ctx.default_return_type.column)
 
 
 # We really need to add this to TypeChecker API
