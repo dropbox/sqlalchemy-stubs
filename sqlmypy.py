@@ -10,17 +10,43 @@ from mypy.types import (
 from mypy.erasetype import erase_typevars
 from mypy.maptype import map_instance_to_supertype
 
-from typing import Optional, Callable, Set, List
+from typing import Optional, Callable, List
 
-DECL_BASES = set()  # type: Set[str]
+
+def is_declarative(info: TypeInfo) -> bool:
+    """Check if this is a subclass of a declarative base."""
+    if info.mro:
+        for base in info.mro:
+            metadata = info.metadata.get('sqlalchemy')
+            if metadata and metadata.get('declarative_base'):
+                return True
+    return False
+
+
+def set_declarative(info: TypeInfo) -> None:
+    """Record given class as a declarative base."""
+    info.metadata.setdefault('sqlalchemy', {})['declarative_base'] = True
 
 
 class BasicSQLAlchemyPlugin(Plugin):
+    """Basic plugin to support simple operations with models.
+
+    Currently supported functionality:
+      * Recognize dynamically defined declarative bases.
+      * Add an __init__() method to models.
+      * Provide better types for 'Column's and 'RelationshipProperty's
+        using flags 'primary_key', 'nullable', 'uselist', etc.
+    """
     def get_function_hook(self, fullname: str) -> Optional[Callable[[FunctionContext], Type]]:
         if fullname == 'sqlalchemy.sql.schema.Column':
             return column_hook
         if fullname == 'sqlalchemy.orm.relationships.RelationshipProperty':
             return relationship_hook
+        sym = self.lookup_fully_qualified(fullname)
+        if sym and isinstance(sym.node, TypeInfo):
+            # May be a model instantiation
+            if is_declarative(sym.node):
+                return model_hook
         return None
 
     def get_dynamic_class_hook(self, fullname):
@@ -34,8 +60,10 @@ class BasicSQLAlchemyPlugin(Plugin):
         return None
 
     def get_base_class_hook(self, fullname: str) -> Optional[Callable[[ClassDefContext], None]]:
-        if fullname in DECL_BASES:
-            return add_init_hook
+        sym = self.lookup_fully_qualified(fullname)
+        if sym and isinstance(sym.node, TypeInfo):
+            if is_declarative(sym.node):
+                return add_init_hook
         return None
 
 
@@ -115,10 +143,26 @@ def add_init_hook(ctx: ClassDefContext) -> None:
 
 
 def decl_deco_hook(ctx: ClassDefContext) -> None:
-    DECL_BASES.add(ctx.cls.fullname)
+    """Support declaring base class as declarative with a decorator.
+
+    For example:
+        from from sqlalchemy.ext.declarative import as_declarative
+
+        @as_declarative
+        class Base:
+            ...
+    """
+    set_declarative(ctx.cls.info)
 
 
 def decl_info_hook(ctx):
+    """Support dynamically defining declarative bases.
+
+    For example:
+        from sqlalchemy.ext.declarative import declarative_base
+
+        Base = declarative_base()
+    """
     class_def = ClassDef(ctx.name, Block([]))
     class_def.fullname = ctx.api.qualified_name(ctx.name)
 
@@ -128,7 +172,11 @@ def decl_info_hook(ctx):
     info.mro = [info, obj.type]
     info.bases = [obj]
     ctx.api.add_symbol_table_node(ctx.name, SymbolTableNode(GDEF, info))
-    DECL_BASES.add(class_def.fullname)
+    set_declarative(info)
+
+
+def model_hook(ctx: FunctionContext) -> Type:
+    return ctx.default_return_type
 
 
 def relationship_hook(ctx: FunctionContext) -> Type:

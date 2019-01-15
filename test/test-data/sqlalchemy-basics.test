@@ -47,7 +47,7 @@ reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[buil
 [out]
 
 [case testColumnFieldsRelationship]
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
@@ -76,7 +76,6 @@ class Other(Base):
     name = Column(String())
 
 [file base.py]
-from typing import Any
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 [out]
