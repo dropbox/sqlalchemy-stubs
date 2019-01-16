@@ -242,7 +242,7 @@ def relationship_hook(ctx: FunctionContext) -> Type:
     """
     assert isinstance(ctx.default_return_type, Instance)
     original_type_arg = ctx.default_return_type.args[0]
-    has_no_annotation = isinstance(original_type_arg, UninhabitedType)
+    has_annotation = not isinstance(original_type_arg, UninhabitedType)
 
     arg = get_argument_by_name(ctx, 'argument')
     arg_type = get_argtype_by_name(ctx, 'argument')
@@ -274,9 +274,10 @@ def relationship_hook(ctx: FunctionContext) -> Type:
         if parse_bool(uselist_arg):
             new_arg = ctx.api.named_generic_type('typing.Iterable', [new_arg])
     else:
-        if has_no_annotation and not isinstance(new_arg, AnyType):
-            ctx.api.fail('Cannot figure out kind of relationship', ctx.context)
-            ctx.api.note('Suggestion: use an explicit "uselist" flag', ctx.context)
+        if has_annotation:
+            # If there is an annotation we use it as a source of truth.
+            # This will cause false negatives, but it is better than lots of false positives.
+            new_arg = original_type_arg
 
     return Instance(ctx.default_return_type.type, [new_arg],
                     line=ctx.default_return_type.line,

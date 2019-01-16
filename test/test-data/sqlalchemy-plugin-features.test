@@ -97,11 +97,9 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer(), primary_key=True)
-    first_other = relationship(Other, uselist=False)
+    first_other = relationship(Other)
     second_other = relationship(Other, uselist=True)
-    first_bad_other = relationship(Other)  # E: Cannot figure out kind of relationship \
-                                           # N: Suggestion: use an explicit "uselist" flag
-    second_bad_other: RelationshipProperty[int] = relationship(Other, uselist=False)  # E: Incompatible types in assignment (expression has type "RelationshipProperty[Other]", variable has type "RelationshipProperty[int]")
+    bad_other: RelationshipProperty[int] = relationship(Other, uselist=False)  # E: Incompatible types in assignment (expression has type "RelationshipProperty[Other]", variable has type "RelationshipProperty[int]")
 
 user = User()
 reveal_type(user.first_other)  # E: Revealed type is 'main.Other*'
@@ -125,8 +123,6 @@ class User(Base):
     id = Column(Integer(), primary_key=True)
     first_other = relationship('Other', uselist=False)
     second_other = relationship('Other', uselist=True)
-    first_bad_other = relationship('Other')  # E: Cannot figure out kind of relationship \
-                                             # N: Suggestion: use an explicit "uselist" flag
     second_bad_other = relationship('What')  # E: Cannot find model "What" \
                                              # N: Only imported models can be found; use "if TYPE_CHECKING: ..." to avoid import cycles
 
