@@ -1,4 +1,4 @@
-from typing import Any, Optional, Generic, TypeVar, Union, overload
+from typing import Any, Optional, Generic, TypeVar, Union, overload, Type
 from .interfaces import (
     MANYTOMANY as MANYTOMANY,
     MANYTOONE as MANYTOONE,
@@ -11,12 +11,11 @@ def remote(expr): ...
 def foreign(expr): ...
 
 
-_T = TypeVar('_T')
 _T_co = TypeVar('_T_co', covariant=True)
 
 
 # Note: typical use case is where argument is a string, so this will require
-# a plugin to infer '_T', otherwise a user will need to write an explicit annotation.
+# a plugin to infer '_T_co', otherwise a user will need to write an explicit annotation.
 # It is not clear whether RelationshipProperty is covariant at this stage since
 # many types are still missing.
 class RelationshipProperty(StrategizedProperty, Generic[_T_co]):
@@ -55,7 +54,7 @@ class RelationshipProperty(StrategizedProperty, Generic[_T_co]):
     order_by: Any = ...
     back_populates: Any = ...
     backref: Any = ...
-    def __init__(self, argument, secondary: Optional[Any] = ...,
+    def __init__(self, argument: Any, secondary: Optional[Any] = ...,
                  primaryjoin: Optional[Any] = ..., secondaryjoin: Optional[Any] = ...,
                  foreign_keys: Optional[Any] = ..., uselist: Optional[Any] = ...,
                  order_by: Any = ..., backref: Optional[Any] = ...,
