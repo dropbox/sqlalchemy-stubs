@@ -5,8 +5,9 @@ from mypy.nodes import(
     Argument, Var, ARG_STAR2
 )
 from mypy.types import (
-    UnionType, NoneTyp, Instance, Type, AnyType, TypeOfAny, UninhabitedType
+    UnionType, NoneTyp, Instance, Type, AnyType, TypeOfAny, UninhabitedType, CallableType
 )
+from mypy.typevars import fill_typevars_with_any
 
 from typing import Optional, Callable, Dict, TYPE_CHECKING
 if TYPE_CHECKING:
@@ -172,6 +173,18 @@ def get_argument_by_name(ctx: FunctionContext, name: str) -> Optional[Expression
     return args[0]
 
 
+def get_argtype_by_name(ctx: FunctionContext, name: str) -> Optional[Type]:
+    """Same as above but for argument type."""
+    if name not in ctx.callee_arg_names:
+        return None
+    idx = ctx.callee_arg_names.index(name)
+    arg_types = ctx.arg_types[idx]
+    if len(arg_types) != 1:
+        # Either an error or no value passed.
+        return None
+    return arg_types[0]
+
+
 def column_hook(ctx: FunctionContext) -> Type:
     """Infer better types for Column calls.
 
@@ -229,11 +242,13 @@ def relationship_hook(ctx: FunctionContext) -> Type:
     """
     assert isinstance(ctx.default_return_type, Instance)
     original_type_arg = ctx.default_return_type.args[0]
+    has_no_annotation = isinstance(original_type_arg, UninhabitedType)
+
     arg = get_argument_by_name(ctx, 'argument')
+    arg_type = get_argtype_by_name(ctx, 'argument')
+
     uselist_arg = get_argument_by_name(ctx, 'uselist')
-    if not isinstance(original_type_arg, UninhabitedType):
-        # The type was inferred using the stub signature.
-        return ctx.default_return_type
+
     if isinstance(arg, StrExpr):
         name = arg.value
         # Private API for local lookup, but probably needs to be public.
@@ -242,23 +257,28 @@ def relationship_hook(ctx: FunctionContext) -> Type:
         except (KeyError, AssertionError):
             sym = None
         if sym and isinstance(sym.node, TypeInfo):
-            if not is_declarative(sym.node):
-                ctx.api.fail('First argument to relationship must be a model', ctx.context)
-            any = AnyType(TypeOfAny.special_form)
-            new_arg = Instance(sym.node, [any] * len(sym.node.defn.type_vars))
+            new_arg = fill_typevars_with_any(sym.node)
         else:
             ctx.api.fail('Cannot find model "{}"'.format(name), ctx.context)
             ctx.api.note('Only imported models can be found', ctx.context)
             ctx.api.note('Use "if TYPE_CHECKING: ..." to avoid import cycles', ctx.context)
             new_arg = AnyType(TypeOfAny.from_error)
     else:
-        new_arg = original_type_arg
+        if isinstance(arg_type, CallableType) and arg_type.is_type_obj():
+            new_arg = fill_typevars_with_any(arg_type.type_object())
+        else:
+            # Something complex, stay silent for now.
+            new_arg = AnyType(TypeOfAny.special_form)
+
+    # We figured out, the model type. Now check if we need to wrap it in Iterable
     if uselist_arg:
         if parse_bool(uselist_arg):
             new_arg = ctx.api.named_generic_type('typing.Iterable', [new_arg])
     else:
-        ctx.api.fail('Cannot figure out kind of relationship', ctx.context)
-        ctx.api.note('Either add an annotation or use an explicit "uselist" flag', ctx.context)
+        if has_no_annotation:
+            ctx.api.fail('Cannot figure out kind of relationship', ctx.context)
+            ctx.api.note('Suggestion: use an explicit "uselist" flag', ctx.context)
+
     return Instance(ctx.default_return_type.type, [new_arg],
                     line=ctx.default_return_type.line,
                     column=ctx.default_return_type.column)

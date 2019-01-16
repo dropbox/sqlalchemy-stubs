@@ -54,23 +54,6 @@ class RelationshipProperty(StrategizedProperty, Generic[_T_co]):
     order_by: Any = ...
     back_populates: Any = ...
     backref: Any = ...
-    @overload
-    def __init__(self, argument: Type[_T_co], secondary: Optional[Any] = ...,
-                 primaryjoin: Optional[Any] = ..., secondaryjoin: Optional[Any] = ...,
-                 foreign_keys: Optional[Any] = ..., uselist: Optional[Any] = ...,
-                 order_by: Any = ..., backref: Optional[Any] = ...,
-                 back_populates: Optional[Any] = ..., post_update: bool = ..., cascade: Union[str, bool] = ...,
-                 extension: Optional[Any] = ..., viewonly: bool = ...,
-                 lazy: Optional[Union[str, bool]] = ..., collection_class: Optional[Any] = ...,
-                 passive_deletes: bool = ..., passive_updates: bool = ...,
-                 remote_side: Optional[Any] = ..., enable_typechecks: bool = ...,
-                 join_depth: Optional[Any] = ..., comparator_factory: Optional[Any] = ...,
-                 single_parent: bool = ..., innerjoin: bool = ..., distinct_target_key: Optional[Any] = ...,
-                 doc: Optional[Any] = ..., active_history: bool = ..., cascade_backrefs: bool = ...,
-                 load_on_pending: bool = ..., bake_queries: bool = ...,
-                 _local_remote_pairs: Optional[Any] = ..., query_class: Optional[Any] = ...,
-                 info: Optional[Any] = ...) -> None: ...
-    @overload
     def __init__(self, argument: Any, secondary: Optional[Any] = ...,
                  primaryjoin: Optional[Any] = ..., secondaryjoin: Optional[Any] = ...,
                  foreign_keys: Optional[Any] = ..., uselist: Optional[Any] = ...,

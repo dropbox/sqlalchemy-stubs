@@ -22,3 +22,156 @@ User(name=os)
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 [out]
+
+[case testModelInitColumnDecorated]
+# flags: --strict-optional
+from sqlalchemy import Column, Integer, String
+from base import Base
+from typing import Optional
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+
+oi: Optional[int]
+os: Optional[str]
+
+User()
+User(1, 2)  # E: Too many arguments for "User"
+User(id=int(), name=str())
+User(id=oi)  # E: Incompatible type for "id" of "User" (got "Optional[int]", expected "int")
+User(name=os)
+
+[file base.py]
+from sqlalchemy.ext.declarative import as_declarative
+@as_declarative()
+class Base:
+    ...
+[out]
+
+[case testModelInitRelationship]
+from typing import TYPE_CHECKING, List
+
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship, RelationshipProperty
+from base import Base
+if TYPE_CHECKING:
+    from other import Other
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    other = relationship('Other', uselist=False)
+    many_others = relationship(Other, uselist=True)
+
+o: Other
+mo: List[Other]
+User()
+User(other=o, many_others=mo)
+User(other=mo)  # E: Incompatible type for "other" of "User" (got "List[Other]", expected "Other")
+User(unknown=42)  # E: Unexpected column "unknown" for model "User"
+
+[file other.py]
+from sqlalchemy import Column, Integer, String
+from base import Base
+
+class Other(Base):
+    __tablename__ = 'other'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String(), nullable=False)
+
+[file base.py]
+from sqlalchemy.ext.declarative import declarative_base
+Base = declarative_base()
+[out]
+
+[case testRelationshipType]
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship, RelationshipProperty
+from typing import Iterable
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    first_other = relationship(Other, uselist=False)
+    second_other = relationship(Other, uselist=True)
+    first_bad_other = relationship(Other)  # E: Cannot figure out kind of relationship \
+                                           # N: Suggestion: use an explicit "uselist" flag
+    second_bad_other: RelationshipProperty[int] = relationship(Other, uselist=False)  # E: Incompatible types in assignment (expression has type "RelationshipProperty[Other]", variable has type "RelationshipProperty[int]")
+
+user = User()
+reveal_type(user.first_other)  # E: Revealed type is 'main.Other*'
+reveal_type(user.second_other)  # E: Revealed type is 'typing.Iterable*[main.Other]'
+
+class Other(Base):
+    __tablename__ = 'other'
+    id = Column(Integer(), primary_key=True)
+[out]
+
+[case testRelationshipString]
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship, RelationshipProperty
+from typing import Iterable
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    first_other = relationship('Other', uselist=False)
+    second_other = relationship('Other', uselist=True)
+    first_bad_other = relationship('Other')  # E: Cannot figure out kind of relationship \
+                                             # N: Suggestion: use an explicit "uselist" flag
+    second_bad_other = relationship('What', uselist=False)  # E: Cannot find model "What" \
+                                                            # N: Only imported models can be found \
+                                                            # N: Use "if TYPE_CHECKING: ..." to avoid import cycles
+
+user = User()
+reveal_type(user.first_other)  # E: Revealed type is 'main.Other*'
+reveal_type(user.second_other)  # E: Revealed type is 'typing.Iterable*[main.Other]'
+
+class Other(Base):
+    __tablename__ = 'other'
+    id = Column(Integer(), primary_key=True)
+[out]
+
+[case testRelationshipAnnotated]
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship, RelationshipProperty
+from typing import Iterable
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    first_other: RelationshipProperty[Other] = relationship('Other')
+    second_other: RelationshipProperty[Iterable[Other]] = relationship(Other, uselist=True)
+    third_other: RelationshipProperty[Other] = relationship(Other, uselist=False)
+    bad_other: RelationshipProperty[Other] = relationship('Other', uselist=True)  # E: Incompatible types in assignment (expression has type "RelationshipProperty[Iterable[Other]]", variable has type "RelationshipProperty[Other]")
+
+class Other(Base):
+    __tablename__ = 'other'
+    id = Column(Integer(), primary_key=True)
+[out]
+
+[case testColumnCombo]
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String(), default='John Doe', nullable=True)
+
+user: User
+reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[Union[builtins.str*, None]]'
+[out]

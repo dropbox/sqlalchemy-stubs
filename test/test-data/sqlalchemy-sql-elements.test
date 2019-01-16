@@ -85,7 +85,7 @@ Base: Any = declarative_base()
 
 class Model(Base):
     __tablename__ = 'users'
-    tags = Column(ARRAY(String(16)))
+    tags = Column(ARRAY(String(16)), nullable=False)
 
 tags: Set[str] = set()
 reveal_type(cast(tags, Model.tags.type))  # E: Revealed type is 'sqlalchemy.sql.elements.Cast[builtins.list*[builtins.str*]]'
