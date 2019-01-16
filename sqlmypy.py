@@ -260,8 +260,7 @@ def relationship_hook(ctx: FunctionContext) -> Type:
             new_arg = fill_typevars_with_any(sym.node)
         else:
             ctx.api.fail('Cannot find model "{}"'.format(name), ctx.context)
-            ctx.api.note('Only imported models can be found', ctx.context)
-            ctx.api.note('Use "if TYPE_CHECKING: ..." to avoid import cycles', ctx.context)
+            ctx.api.note('Only imported models can be found; use "if TYPE_CHECKING: ..." to avoid import cycles', ctx.context)
             new_arg = AnyType(TypeOfAny.from_error)
     else:
         if isinstance(arg_type, CallableType) and arg_type.is_type_obj():
@@ -275,7 +274,7 @@ def relationship_hook(ctx: FunctionContext) -> Type:
         if parse_bool(uselist_arg):
             new_arg = ctx.api.named_generic_type('typing.Iterable', [new_arg])
     else:
-        if has_no_annotation:
+        if has_no_annotation and not isinstance(new_arg, AnyType):
             ctx.api.fail('Cannot figure out kind of relationship', ctx.context)
             ctx.api.note('Suggestion: use an explicit "uselist" flag', ctx.context)
 

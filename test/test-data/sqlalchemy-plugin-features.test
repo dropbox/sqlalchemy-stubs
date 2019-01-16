@@ -127,9 +127,8 @@ class User(Base):
     second_other = relationship('Other', uselist=True)
     first_bad_other = relationship('Other')  # E: Cannot figure out kind of relationship \
                                              # N: Suggestion: use an explicit "uselist" flag
-    second_bad_other = relationship('What', uselist=False)  # E: Cannot find model "What" \
-                                                            # N: Only imported models can be found \
-                                                            # N: Use "if TYPE_CHECKING: ..." to avoid import cycles
+    second_bad_other = relationship('What')  # E: Cannot find model "What" \
+                                             # N: Only imported models can be found; use "if TYPE_CHECKING: ..." to avoid import cycles
 
 user = User()
 reveal_type(user.first_other)  # E: Revealed type is 'main.Other*'
