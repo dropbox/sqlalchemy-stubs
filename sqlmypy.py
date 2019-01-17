@@ -2,7 +2,7 @@ from mypy.plugin import Plugin, FunctionContext, ClassDefContext
 from mypy.plugins.common import add_method
 from mypy.nodes import(
     NameExpr, Expression, StrExpr, TypeInfo, ClassDef, Block, SymbolTable, SymbolTableNode, GDEF,
-    Argument, Var, ARG_STAR2
+    Argument, Var, ARG_STAR2, MDEF
 )
 from mypy.types import (
     UnionType, NoneTyp, Instance, Type, AnyType, TypeOfAny, UninhabitedType, CallableType
@@ -86,6 +86,19 @@ def add_init_hook(ctx: ClassDefContext) -> None:
     add_method(ctx, '__init__', [kw_arg], NoneTyp())
     ctx.cls.info.metadata.setdefault('sqlalchemy', {})['generated_init'] = True
 
+    # Also add a selection of auto-generated attributes.
+    table = Var('__table__')
+    table.info = ctx.cls.info
+    table._fullname = ctx.cls.fullname + '.__table__'
+    sym = ctx.api.lookup_fully_qualified_or_none('sqlalchemy.sql.schema.Table')
+    if sym:
+        assert isinstance(sym.node, TypeInfo)
+        tp = Instance(sym.node, [])  # type: Type
+    else:
+        tp = AnyType(TypeOfAny.special_form)
+    table.type = tp
+    ctx.cls.info.names['__table__'] = SymbolTableNode(MDEF, table)
+
 
 def decl_deco_hook(ctx: ClassDefContext) -> None:
     """Support declaring base class as declarative with a decorator.
@@ -118,6 +131,19 @@ def decl_info_hook(ctx):
     info.bases = [obj]
     ctx.api.add_symbol_table_node(ctx.name, SymbolTableNode(GDEF, info))
     set_declarative(info)
+
+    # Also add a selection of generated attributes.
+    meta = Var('metadata')
+    meta.info = info
+    meta._fullname = class_def.fullname + '.metadata'
+    sym = ctx.api.lookup_fully_qualified_or_none('sqlalchemy.sql.schema.MetaData')
+    if sym:
+        assert isinstance(sym.node, TypeInfo)
+        tp = Instance(sym.node, [])  # type: Type
+    else:
+        tp = AnyType(TypeOfAny.special_form)
+    meta.type = tp
+    ctx.cls.info.names['metadata'] = SymbolTableNode(MDEF, meta)
 
 
 def model_hook(ctx: FunctionContext) -> Type:
