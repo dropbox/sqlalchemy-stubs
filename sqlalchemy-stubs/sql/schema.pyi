@@ -110,6 +110,19 @@ class Column(SchemaItem, ColumnClause[_T]):
                  nullable: bool = ..., onupdate: Any = ..., primary_key: bool = ..., server_default: Any = ...,
                  server_onupdate: FetchedValue = ..., quote: Optional[bool] = ..., unique: bool = ...,
                  system: bool = ..., comment: str = ...) -> None: ...
+    # The two overloads below exist to make annotation more like a cast. This is a temporary measure.
+    @overload
+    def __init__(self, name: str, type_: Any, *args: Any, autoincrement: Union[bool, str] = ...,
+                 default: Any = ..., doc: str = ..., key: str = ..., index: bool = ..., info: Mapping[str, Any] = ...,
+                 nullable: bool = ..., onupdate: Any = ..., primary_key: bool = ..., server_default: Any = ...,
+                 server_onupdate: FetchedValue = ..., quote: Optional[bool] = ..., unique: bool = ...,
+                 system: bool = ..., comment: str = ...) -> None: ...
+    @overload
+    def __init__(self, type_: Any, *args: Any, autoincrement: Union[bool, str] = ...,
+                 default: Any = ..., doc: str = ..., key: str = ..., index: bool = ..., info: Mapping[str, Any] = ...,
+                 nullable: bool = ..., onupdate: Any = ..., primary_key: bool = ..., server_default: Any = ...,
+                 server_onupdate: FetchedValue = ..., quote: Optional[bool] = ..., unique: bool = ...,
+                 system: bool = ..., comment: str = ...) -> None: ...
     def references(self, column: Column[Any]) -> bool: ...
     def append_foreign_key(self, fk: ForeignKey) -> None: ...
     def copy(self: _C, **kw: Any) -> _C: ...
