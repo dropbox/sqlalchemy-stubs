@@ -143,7 +143,7 @@ def decl_info_hook(ctx):
     else:
         tp = AnyType(TypeOfAny.special_form)
     meta.type = tp
-    ctx.cls.info.names['metadata'] = SymbolTableNode(MDEF, meta)
+    info.names['metadata'] = SymbolTableNode(MDEF, meta)
 
 
 def model_hook(ctx: FunctionContext) -> Type:
