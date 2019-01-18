@@ -2,7 +2,7 @@ from mypy.plugin import Plugin, FunctionContext, ClassDefContext
 from mypy.plugins.common import add_method
 from mypy.nodes import(
     NameExpr, Expression, StrExpr, TypeInfo, ClassDef, Block, SymbolTable, SymbolTableNode, GDEF,
-    Argument, Var, ARG_STAR2
+    Argument, Var, ARG_STAR2, MDEF
 )
 from mypy.types import (
     UnionType, NoneTyp, Instance, Type, AnyType, TypeOfAny, UninhabitedType, CallableType
@@ -67,11 +67,23 @@ class BasicSQLAlchemyPlugin(Plugin):
         sym = self.lookup_fully_qualified(fullname)
         if sym and isinstance(sym.node, TypeInfo):
             if is_declarative(sym.node):
-                return add_init_hook
+                return add_model_init_hook
         return None
 
 
-def add_init_hook(ctx: ClassDefContext) -> None:
+def add_var_to_class(name: str, typ: Type, info: TypeInfo) -> None:
+    """Add a variable with given name and type to the symbol table of a class.
+
+    This also takes care about setting necessary attributes on the variable node.
+    """
+    var = Var(name)
+    var.info = info
+    var._fullname = info.fullname() + '.' + name
+    var.type = typ
+    info.names[name] = SymbolTableNode(MDEF, var)
+
+
+def add_model_init_hook(ctx: ClassDefContext) -> None:
     """Add a dummy __init__() to a model and record it is generated.
 
     Instantiation will be checked more precisely when we inferred types
@@ -86,6 +98,26 @@ def add_init_hook(ctx: ClassDefContext) -> None:
     add_method(ctx, '__init__', [kw_arg], NoneTyp())
     ctx.cls.info.metadata.setdefault('sqlalchemy', {})['generated_init'] = True
 
+    # Also add a selection of auto-generated attributes.
+    sym = ctx.api.lookup_fully_qualified_or_none('sqlalchemy.sql.schema.Table')
+    if sym:
+        assert isinstance(sym.node, TypeInfo)
+        typ = Instance(sym.node, [])  # type: Type
+    else:
+        typ = AnyType(TypeOfAny.special_form)
+    add_var_to_class('__table__', typ, ctx.cls.info)
+
+
+def add_metadata_var(ctx: ClassDefContext, info: TypeInfo) -> None:
+    """Add .metadata attribute to a declarative base."""
+    sym = ctx.api.lookup_fully_qualified_or_none('sqlalchemy.sql.schema.MetaData')
+    if sym:
+        assert isinstance(sym.node, TypeInfo)
+        typ = Instance(sym.node, [])  # type: Type
+    else:
+        typ = AnyType(TypeOfAny.special_form)
+    add_var_to_class('metadata', typ, info)
+
 
 def decl_deco_hook(ctx: ClassDefContext) -> None:
     """Support declaring base class as declarative with a decorator.
@@ -98,6 +130,7 @@ def decl_deco_hook(ctx: ClassDefContext) -> None:
             ...
     """
     set_declarative(ctx.cls.info)
+    add_metadata_var(ctx, ctx.cls.info)
 
 
 def decl_info_hook(ctx):
@@ -118,6 +151,9 @@ def decl_info_hook(ctx):
     info.bases = [obj]
     ctx.api.add_symbol_table_node(ctx.name, SymbolTableNode(GDEF, info))
     set_declarative(info)
+
+    # TODO: check what else is added.
+    add_metadata_var(ctx, info)
 
 
 def model_hook(ctx: FunctionContext) -> Type:
@@ -146,6 +182,10 @@ def model_hook(ctx: FunctionContext) -> Type:
     assert len(ctx.arg_names) == 1  # only **kwargs in generated __init__
     assert len(ctx.arg_types) == 1
     for actual_name, actual_type in zip(ctx.arg_names[0], ctx.arg_types[0]):
+        if actual_name is None:
+            # We can't check kwargs reliably.
+            # TODO: support TypedDict?
+            continue
         if actual_name not in expected_types:
             ctx.api.fail('Unexpected column "{}" for model "{}"'.format(actual_name, model.name()),
                          ctx.context)
