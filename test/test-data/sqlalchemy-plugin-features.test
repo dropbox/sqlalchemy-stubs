@@ -204,3 +204,18 @@ user: User
 reveal_type(User.metadata)  # E: Revealed type is 'sqlalchemy.sql.schema.MetaData'
 reveal_type(User.__table__)  # E: Revealed type is 'sqlalchemy.sql.schema.Table'
 [out]
+
+[case testKwArgsModelOK]
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+record = {'name': 'John Doe'}
+User(**record)  # OK
+[out]
