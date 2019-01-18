@@ -172,6 +172,10 @@ def model_hook(ctx: FunctionContext) -> Type:
     assert len(ctx.arg_names) == 1  # only **kwargs in generated __init__
     assert len(ctx.arg_types) == 1
     for actual_name, actual_type in zip(ctx.arg_names[0], ctx.arg_types[0]):
+        if actual_name is None:
+            # We can't check kwargs reliably.
+            # TODO: support TypedDict?
+            continue
         if actual_name not in expected_types:
             ctx.api.fail('Unexpected column "{}" for model "{}"'.format(actual_name, model.name()),
                          ctx.context)
