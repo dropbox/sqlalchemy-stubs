@@ -170,3 +170,37 @@ class User(Base):
 user: User
 reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[Union[builtins.str*, None]]'
 [out]
+
+[case testAddedAttributesDeclared]
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String(), default='John Doe', nullable=True)
+
+user: User
+reveal_type(User.metadata)  # E: Revealed type is 'sqlalchemy.sql.schema.MetaData'
+reveal_type(User.__table__)  # E: Revealed type is 'sqlalchemy.sql.schema.Table'
+[out]
+
+[case testAddedAttributedDecorated]
+from sqlalchemy.ext.declarative import as_declarative
+from sqlalchemy import Column, Integer, String
+
+@as_declarative()
+class Base:
+    ...
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String(), default='John Doe', nullable=True)
+
+user: User
+reveal_type(User.metadata)  # E: Revealed type is 'sqlalchemy.sql.schema.MetaData'
+reveal_type(User.__table__)  # E: Revealed type is 'sqlalchemy.sql.schema.Table'
+[out]
