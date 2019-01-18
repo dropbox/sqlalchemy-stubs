@@ -67,11 +67,23 @@ class BasicSQLAlchemyPlugin(Plugin):
         sym = self.lookup_fully_qualified(fullname)
         if sym and isinstance(sym.node, TypeInfo):
             if is_declarative(sym.node):
-                return add_init_hook
+                return add_model_init_hook
         return None
 
 
-def add_init_hook(ctx: ClassDefContext) -> None:
+def add_var_to_class(name: str, typ: Type, info: TypeInfo) -> None:
+    """Add a variable with given name and type to the symbol table of a class.
+
+    This also takes care about setting necessary attributes on the variable node.
+    """
+    var = Var(name)
+    var.info = info
+    var._fullname = info.fullname() + '.' + name
+    var.type = typ
+    info.names[name] = SymbolTableNode(MDEF, var)
+
+
+def add_model_init_hook(ctx: ClassDefContext) -> None:
     """Add a dummy __init__() to a model and record it is generated.
 
     Instantiation will be checked more precisely when we inferred types
@@ -87,17 +99,24 @@ def add_init_hook(ctx: ClassDefContext) -> None:
     ctx.cls.info.metadata.setdefault('sqlalchemy', {})['generated_init'] = True
 
     # Also add a selection of auto-generated attributes.
-    table = Var('__table__')
-    table.info = ctx.cls.info
-    table._fullname = ctx.cls.fullname + '.__table__'
     sym = ctx.api.lookup_fully_qualified_or_none('sqlalchemy.sql.schema.Table')
     if sym:
         assert isinstance(sym.node, TypeInfo)
-        tp = Instance(sym.node, [])  # type: Type
+        typ = Instance(sym.node, [])  # type: Type
     else:
-        tp = AnyType(TypeOfAny.special_form)
-    table.type = tp
-    ctx.cls.info.names['__table__'] = SymbolTableNode(MDEF, table)
+        typ = AnyType(TypeOfAny.special_form)
+    add_var_to_class('__table__', typ, ctx.cls.info)
+
+
+def add_metadata_var(ctx: ClassDefContext, info: TypeInfo) -> None:
+    """Add .metadata attribute to a declarative base."""
+    sym = ctx.api.lookup_fully_qualified_or_none('sqlalchemy.sql.schema.MetaData')
+    if sym:
+        assert isinstance(sym.node, TypeInfo)
+        typ = Instance(sym.node, [])  # type: Type
+    else:
+        typ = AnyType(TypeOfAny.special_form)
+    add_var_to_class('metadata', typ, info)
 
 
 def decl_deco_hook(ctx: ClassDefContext) -> None:
@@ -111,6 +130,7 @@ def decl_deco_hook(ctx: ClassDefContext) -> None:
             ...
     """
     set_declarative(ctx.cls.info)
+    add_metadata_var(ctx, ctx.cls.info)
 
 
 def decl_info_hook(ctx):
@@ -132,18 +152,8 @@ def decl_info_hook(ctx):
     ctx.api.add_symbol_table_node(ctx.name, SymbolTableNode(GDEF, info))
     set_declarative(info)
 
-    # Also add a selection of generated attributes.
-    meta = Var('metadata')
-    meta.info = info
-    meta._fullname = class_def.fullname + '.metadata'
-    sym = ctx.api.lookup_fully_qualified_or_none('sqlalchemy.sql.schema.MetaData')
-    if sym:
-        assert isinstance(sym.node, TypeInfo)
-        tp = Instance(sym.node, [])  # type: Type
-    else:
-        tp = AnyType(TypeOfAny.special_form)
-    meta.type = tp
-    info.names['metadata'] = SymbolTableNode(MDEF, meta)
+    # TODO: check what else is added.
+    add_metadata_var(ctx, info)
 
 
 def model_hook(ctx: FunctionContext) -> Type:
