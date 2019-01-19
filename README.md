@@ -26,7 +26,7 @@ class User(Base):
     name = Column(String)
 
 user = User(id=42, name=42)  # Error: Incompatible type for "name" of "User"
-                      # (got "int", expected "Optional[str]"
+                             # (got "int", expected "Optional[str]"
 user.id  # Inferred type is "int"
 User.name  # Inferred type is "Column[Optional[str]]"
 ```
