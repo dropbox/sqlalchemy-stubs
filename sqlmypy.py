@@ -92,9 +92,9 @@ def add_model_init_hook(ctx: ClassDefContext) -> None:
     if '__init__' in ctx.cls.info.names:
         # Don't override existing definition.
         return
-    typ = AnyType(TypeOfAny.special_form)
-    var = Var('kwargs', typ)
-    kw_arg = Argument(variable=var, type_annotation=typ, initializer=None, kind=ARG_STAR2)
+    any = AnyType(TypeOfAny.special_form)
+    var = Var('kwargs', any)
+    kw_arg = Argument(variable=var, type_annotation=any, initializer=None, kind=ARG_STAR2)
     add_method(ctx, '__init__', [kw_arg], NoneTyp())
     ctx.cls.info.metadata.setdefault('sqlalchemy', {})['generated_init'] = True
 
@@ -300,7 +300,8 @@ def relationship_hook(ctx: FunctionContext) -> Type:
             new_arg = fill_typevars_with_any(sym.node)
         else:
             ctx.api.fail('Cannot find model "{}"'.format(name), ctx.context)
-            ctx.api.note('Only imported models can be found; use "if TYPE_CHECKING: ..." to avoid import cycles', ctx.context)
+            ctx.api.note('Only imported models can be found; use "if TYPE_CHECKING: ..." to avoid import cycles',
+                         ctx.context)
             new_arg = AnyType(TypeOfAny.from_error)
     else:
         if isinstance(arg_type, CallableType) and arg_type.is_type_obj():
