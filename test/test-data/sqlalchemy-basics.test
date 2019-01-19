@@ -102,7 +102,7 @@ class User(Base):
 
 user = User()
 reveal_type(user.id)  # E: Revealed type is 'builtins.int*'
-reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[Union[builtins.str*, None]]'
+reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[Union[builtins.unicode*, None]]'
 [out]
 
 [case testColumnFieldsInferredInstance_python2]
@@ -118,5 +118,5 @@ class User(Base):
 
 user = User()
 reveal_type(user.id)  # E: Revealed type is 'builtins.int*'
-reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[builtins.str*]'
+reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[builtins.unicode*]'
 [out]
