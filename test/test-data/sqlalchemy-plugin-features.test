@@ -219,3 +219,67 @@ class User(Base):
 record = {'name': 'John Doe'}
 User(**record)  # OK
 [out]
+
+[case testDeclarativeBaseWithBaseClass]
+# flags: --strict-optional
+from sqlalchemy import Column, Integer, String
+from base import Base
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+
+user: User
+
+reveal_type(user.f())  # E: Revealed type is 'builtins.str'
+
+[file base.py]
+from sqlalchemy.ext.declarative import declarative_base
+
+class Model:
+    def f(self) -> str: ...
+
+Base = declarative_base(cls=Model)
+[out]
+
+[case testDeclarativeBaseWithMultipleBaseClasses]
+# flags: --strict-optional
+from sqlalchemy import Column, Integer, String
+from base import Base
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+
+user: User
+
+reveal_type(user.f())  # E: Revealed type is 'builtins.str'
+reveal_type(user.g())  # E: Revealed type is 'builtins.int'
+
+[file base.py]
+from sqlalchemy.ext.declarative import declarative_base
+
+class Model:
+    def f(self) -> str: ...
+
+class Model2:
+    def g(self) -> int: ...
+
+Base = declarative_base(cls=(Model, Model2))
+[out]
+
+[case testDeclarativeBaseWithBaseClassWrongMRO]
+# flags: --strict-optional
+from sqlalchemy.ext.declarative import declarative_base
+
+class M1:
+    ...
+
+class M2(M1):
+    ...
+
+Base = declarative_base(cls=(M1, M2))  # E: Not able to calculate MRO for declarative base
+reveal_type(Base)  # E: Revealed type is 'Any'
+[out]
