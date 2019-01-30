@@ -1,4 +1,4 @@
-from mypy.mro import calculate_mro
+from mypy.mro import calculate_mro, MroError
 from mypy.plugin import Plugin, FunctionContext, ClassDefContext
 from mypy.plugins.common import add_method
 from mypy.nodes import(
@@ -158,7 +158,14 @@ def decl_info_hook(ctx):
     class_def.info = info
     obj = ctx.api.builtin_type('builtins.object')
     info.bases = cls_instances + [obj]
-    calculate_mro(info)
+    try:
+        calculate_mro(info)
+    except MroError:
+        ctx.api.errors.report(ctx.get_line(), ctx.get_column(), "Not able to calculate MRO for declarative base",
+                              blocker=False)
+        info.bases = [obj]
+        info.fallback_to_any = True
+
     ctx.api.add_symbol_table_node(ctx.name, SymbolTableNode(GDEF, info))
     set_declarative(info)
 
