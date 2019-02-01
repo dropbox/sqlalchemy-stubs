@@ -219,3 +219,11 @@ class User(Base):
 record = {'name': 'John Doe'}
 User(**record)  # OK
 [out]
+
+[case testGrouping]
+from sqlalchemy import Column, String, text
+from sqlalchemy.sql.elements import Grouping
+
+reveal_type(Grouping(Column(String, nullable=False)))  # E: Revealed type is 'sqlalchemy.sql.elements.Grouping[builtins.str*]'
+reveal_type(Grouping(text('foo')))  # E: Revealed type is 'sqlalchemy.sql.elements.Grouping[None]'
+[out]
