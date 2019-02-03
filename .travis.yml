@@ -17,7 +17,7 @@ jobs:
     script: |
       set -e
       pytest
-  - name: "run direct typecheck"
+  - name: "run typecheck on stubs"
     python: 3.6
     script: |
       set -e
@@ -29,6 +29,11 @@ jobs:
     python: 3.6
     script: |
       flake8 sqlalchemy-stubs
+  - name: "run typecheck on plugin"
+    python: 3.6
+    script: |
+      set -e
+      python3 -m mypy --disallow-untyped-defs sqlmypy.py
 
 
 before_install: |
