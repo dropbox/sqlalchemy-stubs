@@ -142,9 +142,9 @@ def decl_info_hook(ctx):
 
         Base = declarative_base()
     """
-    cls_instances = []  # type: List[Instance]
+    cls_bases = []  # type: List[Instance]
 
-    # passing base classes as positional arguments is currently not handled
+    # Passing base classes as positional arguments is currently not handled.
     if 'cls' in ctx.call.arg_names:
         declarative_base_cls_arg = ctx.call.args[ctx.call.arg_names.index("cls")]
         if isinstance(declarative_base_cls_arg, TupleExpr):
@@ -154,7 +154,10 @@ def decl_info_hook(ctx):
 
         for item in items:
             if isinstance(item, RefExpr) and isinstance(item.node, TypeInfo):
-                cls_instances.append(fill_typevars_with_any(item.node))
+                base = fill_typevars_with_any(item.node)
+                # TODO: Support tuple types?
+                if isinstance(base, Instance):
+                    cls_bases.append(base)
 
     class_def = ClassDef(ctx.name, Block([]))
     class_def.fullname = ctx.api.qualified_name(ctx.name)
@@ -162,12 +165,11 @@ def decl_info_hook(ctx):
     info = TypeInfo(SymbolTable(), class_def, ctx.api.cur_mod_id)
     class_def.info = info
     obj = ctx.api.builtin_type('builtins.object')
-    info.bases = cls_instances + [obj]
+    info.bases = cls_bases or [obj]
     try:
         calculate_mro(info)
     except MroError:
-        ctx.api.errors.report(ctx.call.get_line(), ctx.call.get_column(),
-                              "Not able to calculate MRO for declarative base", blocker=False)
+        ctx.api.fail("Not able to calculate MRO for declarative base", ctx.call)
         info.bases = [obj]
         info.fallback_to_any = True
 
