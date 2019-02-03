@@ -11,6 +11,7 @@ from .. import util
 from ..engine import Engine, Connection, Connectable
 from ..engine.url import URL
 from .compiler import DDLCompiler
+from .expression import FunctionElement
 import threading
 
 _T = TypeVar('_T')
@@ -90,25 +91,25 @@ class Column(SchemaItem, ColumnClause[_T]):
     def __init__(self, name: str, type_: Type[TypeEngine[_T]], *args: Any, autoincrement: Union[bool, str] = ...,
                  default: Any = ..., doc: str = ..., key: str = ..., index: bool = ..., info: Mapping[str, Any] = ...,
                  nullable: bool = ..., onupdate: Any = ..., primary_key: bool = ..., server_default: Any = ...,
-                 server_onupdate: FetchedValue = ..., quote: Optional[bool] = ..., unique: bool = ...,
+                 server_onupdate: Union[FetchedValue, FunctionElement] = ..., quote: Optional[bool] = ..., unique: bool = ...,
                  system: bool = ..., comment: str = ...) -> None: ...
     @overload
     def __init__(self, type_: Type[TypeEngine[_T]], *args: Any, autoincrement: Union[bool, str] = ...,
                  default: Any = ..., doc: str = ..., key: str = ..., index: bool = ..., info: Mapping[str, Any] = ...,
                  nullable: bool = ..., onupdate: Any = ..., primary_key: bool = ..., server_default: Any = ...,
-                 server_onupdate: FetchedValue = ..., quote: Optional[bool] = ..., unique: bool = ...,
+                 server_onupdate: Union[FetchedValue, FunctionElement] = ..., quote: Optional[bool] = ..., unique: bool = ...,
                  system: bool = ..., comment: str = ...) -> None: ...
     @overload
     def __init__(self, name: str, type_: TypeEngine[_T], *args: Any, autoincrement: Union[bool, str] = ...,
                  default: Any = ..., doc: str = ..., key: str = ..., index: bool = ..., info: Mapping[str, Any] = ...,
                  nullable: bool = ..., onupdate: Any = ..., primary_key: bool = ..., server_default: Any = ...,
-                 server_onupdate: FetchedValue = ..., quote: Optional[bool] = ..., unique: bool = ...,
+                 server_onupdate: Union[FetchedValue, FunctionElement] = ..., quote: Optional[bool] = ..., unique: bool = ...,
                  system: bool = ..., comment: str = ...) -> None: ...
     @overload
     def __init__(self, type_: TypeEngine[_T], *args: Any, autoincrement: Union[bool, str] = ...,
                  default: Any = ..., doc: str = ..., key: str = ..., index: bool = ..., info: Mapping[str, Any] = ...,
                  nullable: bool = ..., onupdate: Any = ..., primary_key: bool = ..., server_default: Any = ...,
-                 server_onupdate: FetchedValue = ..., quote: Optional[bool] = ..., unique: bool = ...,
+                 server_onupdate: Union[FetchedValue, FunctionElement] = ..., quote: Optional[bool] = ..., unique: bool = ...,
                  system: bool = ..., comment: str = ...) -> None: ...
     def references(self, column: Column[Any]) -> bool: ...
     def append_foreign_key(self, fk: ForeignKey) -> None: ...
@@ -260,7 +261,7 @@ class ForeignKeyConstraint(ColumnCollectionConstraint):
     use_alter: bool = ...
     match: Optional[str] = ...
     elements: List[ForeignKey] = ...
-    def __init__(self, columns: Sequence[str], refcolumns: Sequence[Union[str, Column[Any]]], name: Optional[str] = ...,
+    def __init__(self, columns: SequenceType[str], refcolumns: SequenceType[Union[str, Column[Any]]], name: Optional[str] = ...,
                  onupdate: Optional[str] = ..., ondelete: Optional[str] = ..., deferrable: Optional[bool] = ...,
                  initially: Optional[str] = ..., use_alter: bool = ..., link_to_name: bool = ..., match: Optional[str] = ...,
                  table: Optional[Table] = ..., info: Optional[Mapping[str, Any]] = ..., **dialect_kw: Any) -> None: ...
@@ -325,12 +326,12 @@ class MetaData(SchemaItem):
     @property
     def sorted_tables(self) -> List[Table]: ...
     def reflect(self, bind: Optional[Connectable] = ..., schema: Optional[str] = ..., views: bool = ...,
-                only: Optional[Union[Sequence[str], Callable[[str, MetaData], bool]]] = ..., extend_existing: bool = ...,
+                only: Optional[Union[SequenceType[str], Callable[[str, MetaData], bool]]] = ..., extend_existing: bool = ...,
                 autoload_replace: bool = ..., **dialect_kwargs: Any) -> None: ...
     def append_ddl_listener(self, event_name: str, listener: Callable[[str, MetaData, Connection], None]) -> None: ...
-    def create_all(self, bind: Optional[Connectable] = ..., tables: Optional[Sequence[Table]] = ...,
+    def create_all(self, bind: Optional[Connectable] = ..., tables: Optional[SequenceType[Table]] = ...,
                    checkfirst: bool = ...) -> None: ...
-    def drop_all(self, bind: Optional[Connectable] = ..., tables: Optional[Sequence[Table]] = ...,
+    def drop_all(self, bind: Optional[Connectable] = ..., tables: Optional[SequenceType[Table]] = ...,
                  checkfirst: bool = ...) -> None: ...
 
 class ThreadLocalMetaData(MetaData):

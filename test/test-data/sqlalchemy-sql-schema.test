@@ -14,3 +14,9 @@ reveal_type(m.bind)  # E: Revealed type is 'sqlalchemy.engine.base.Engine'
 m.bind = c
 reveal_type(m.bind)  # E: Revealed type is 'sqlalchemy.engine.base.Connection'
 [out]
+
+[case testSequenceType]
+# Regression test - schema.Sequence is not typing.Sequence
+from sqlalchemy.sql.schema import ForeignKeyConstraint
+ForeignKeyConstraint(["foo", "bar"], ["table.foo", "table.baz"])
+[out]
