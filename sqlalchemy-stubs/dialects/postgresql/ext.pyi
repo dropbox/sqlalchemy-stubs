@@ -1,7 +1,10 @@
 from ...sql import expression, functions, visitors
 from ...sql.schema import ColumnCollectionConstraint
+from ...sql.elements import ColumnElement
+from ...sql.type_api import TypeEngine
+from ...engine.base import Engine, Connection
 from .array import ARRAY
-from typing import Any, Optional, Union, TypeVar, Dict, Tuple
+from typing import Any, Optional, Union, TypeVar, Dict, Tuple, Type, overload
 
 _T = TypeVar('_T')
 _AOB = TypeVar('_AOB', bound=aggregate_order_by)
@@ -25,4 +28,11 @@ class ExcludeConstraint(ColumnCollectionConstraint):
                  where: Optional[Union[str, bool, visitors.Visitable]] = ...) -> None: ...
     def copy(self: _EC, **kw: Any) -> _EC: ...
 
-def array_agg(*arg: Any, **kw: Any) -> functions.array_agg[_T]: ...
+@overload
+def array_agg(self, *args: ColumnElement[Any], bind: Optional[Union[Engine, Connection]] = ...,
+              type_: Type[TypeEngine[_T]]) -> functions.array_agg[_T]: ...
+@overload
+def array_agg(self, *args: ColumnElement[Any], bind: Optional[Union[Engine, Connection]] = ...,
+              type_: TypeEngine[_T]) -> functions.array_agg[_T]: ...
+@overload
+def array_agg(self, *args: ColumnElement[_T], bind: Optional[Union[Engine, Connection]] = ...) -> functions.array_agg[_T]: ...

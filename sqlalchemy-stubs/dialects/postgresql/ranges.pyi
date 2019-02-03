@@ -1,9 +1,9 @@
-from ... import types as sqltypes
-from ...sql import type_api
+from ... import types as _sqltypes
+from ...sql.type_api import TypeEngine
 from typing import Any
 
 class RangeOperators:
-    class comparator_factory(type_api.TypeEngine.Comparator):
+    class comparator_factory(TypeEngine.Comparator):
         def __ne__(self, other: Any): ...
         def contains(self, other: Any, **kw: Any): ...
         def contained_by(self, other: Any): ...
@@ -17,20 +17,20 @@ class RangeOperators:
         def adjacent_to(self, other: Any): ...
         def __add__(self, other: Any): ...
 
-class INT4RANGE(RangeOperators, sqltypes.TypeEngine[Any]):
+class INT4RANGE(RangeOperators, _sqltypes.TypeEngine[Any]):
     __visit_name__: str = ...
 
-class INT8RANGE(RangeOperators, sqltypes.TypeEngine[Any]):
+class INT8RANGE(RangeOperators, _sqltypes.TypeEngine[Any]):
     __visit_name__: str = ...
 
-class NUMRANGE(RangeOperators, sqltypes.TypeEngine[Any]):
+class NUMRANGE(RangeOperators, _sqltypes.TypeEngine[Any]):
     __visit_name__: str = ...
 
-class DATERANGE(RangeOperators, sqltypes.TypeEngine[Any]):
+class DATERANGE(RangeOperators, _sqltypes.TypeEngine[Any]):
     __visit_name__: str = ...
 
-class TSRANGE(RangeOperators, sqltypes.TypeEngine[Any]):
+class TSRANGE(RangeOperators, _sqltypes.TypeEngine[Any]):
     __visit_name__: str = ...
 
-class TSTZRANGE(RangeOperators, sqltypes.TypeEngine[Any]):
+class TSTZRANGE(RangeOperators, _sqltypes.TypeEngine[Any]):
     __visit_name__: str = ...
