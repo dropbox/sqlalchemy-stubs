@@ -33,7 +33,7 @@ jobs:
     python: 3.6
     script: |
       set -e
-      MYPYPATH=external/mypy python3 -m mypy --disallow-untyped-defs --mypy-path=external/mypy sqlmypy.py
+      MYPYPATH=external/mypy python3 -m mypy --disallow-untyped-defs sqlmypy.py
 
 
 before_install: |
