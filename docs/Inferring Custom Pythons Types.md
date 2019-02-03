@@ -11,15 +11,25 @@ especially for fields such as uuids, emails, phone numbers, transaction tokens, 
 
 ```python
 from sqlalchemy.dialects.postgresql import UUID  # import your desired column type
-from typing import NewType
+from sqlalchemy.sql import sqltypes
+from typing import NewType, TYPE_CHECKING
 from uuid import uuid4 as gen_uuid
 
 Uuid = NewType('Uuid', str)  # define the custom Python type to use for typechecking
 
 
+
+# use this type checking idiom bcause TypeDecorator doesn't support __getitem__
+# see [this mypy doc](https://mypy.readthedocs.io/en/latest/common_issues.html#using-classes-that-are-generic-in-stubs-but-not-at-runtime) for full details.
+if TYPE_CHECKING:
+    BaseUuid = sqltypes.TypeDecorator[Uuid]
+else:
+    BaseUuid = sqltypes.TypeDecorator
+
+
 # define a new column field, giving it a type-decorator for your type, and inheriting from the column type. Order is important here.
-class PgUuid(UUID): # type: PgUuid(sqltypes.TypeDecorator[Uuid], UUID)
-    pass
+class PgUuid(BaseUuid):
+    impl = Uuid
 
 
 def uuid4():
