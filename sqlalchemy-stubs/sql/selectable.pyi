@@ -164,8 +164,9 @@ class TableClause(Immutable, FromClause):
     def get_children(self, column_collections: bool = ..., **kwargs: Any) -> List[ColumnClause[Any]]: ...
     # `values` should be Mapping[Union[ColumnClause[Any], str]] but because Mapping is invariant in the key type,
     # we must use Mapping[Any, Any] or list all subclasses of ColumnClause in the Union
-    def insert(self, values: Mapping[Any, Any] = ..., inline: bool = ..., **kwargs: Any) -> Insert: ...
-    def update(self, whereclause: Optional[Union[str, bool, Visitable]] = ..., values: Mapping[Any, Any] = ...,
+    def insert(self, values: Union[Mapping[Any, Any], Sequence[Any]] = ..., inline: bool = ..., **kwargs: Any) -> Insert: ...
+    def update(self, whereclause: Optional[Union[str, bool, Visitable]] = ...,
+               values: Union[Mapping[Any, Any], Sequence[Any]] = ...,
                inline: bool = ..., **kwargs: Any) -> Update: ...
     def delete(self, whereclause: Optional[Union[str, bool, Visitable]] = ..., **kwargs: Any) -> Delete: ...
 
@@ -244,7 +245,7 @@ _SE = TypeVar('_SE', bound=Select)
 
 class Select(HasPrefixes, HasSuffixes, GenerativeSelect):
     __visit_name__: str = ...
-    def __init__(self, columns: Optional[Iterable[Union[ColumnElement[Any], FromClause]]] = ...,
+    def __init__(self, columns: Optional[Iterable[Union[ColumnElement[Any], FromClause, int]]] = ...,
                  whereclause: Optional[Union[str, bool, Visitable]] = ...,
                  from_obj: Optional[Union[str, Selectable, Iterable[Union[str, Selectable]]]] = ...,
                  group_by: Optional[Union[int, str, Visitable, Iterable[Union[int, str, Visitable]]]] = ...,
