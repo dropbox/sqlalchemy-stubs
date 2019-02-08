@@ -53,16 +53,7 @@ inferring `Column[Optional[str]]` for `users.c.name`, currently it is just
 and `select()`.
 
 ## Installation
-
-To install the latest version of the package:
-```
-git clone https://github.com/dropbox/sqlalchemy-stubs
-cd sqlalchemy-stubs
-pip install -U .
-```
-
-After the 0.1 version will be released on PyPI, one can install latest
-stable version as:
+Install latest published version as:
 ```
 pip install -U sqlalchemy-stubs
 ```
@@ -71,6 +62,13 @@ pip install -U sqlalchemy-stubs
 ```
 [mypy]
 plugins = sqlmypy
+```
+
+To install the development version of the package:
+```
+git clone https://github.com/dropbox/sqlalchemy-stubs
+cd sqlalchemy-stubs
+pip install -U .
 ```
 
 ## Development Setup
@@ -88,12 +86,11 @@ pytest
 
 ## Development status
 
-The package is currently in pre-alpha stage. See [issue tracker](https://github.com/dropbox/sqlalchemy-stubs/issues)
+The package is currently in alpha stage. See [issue tracker](https://github.com/dropbox/sqlalchemy-stubs/issues)
 for bugs and missing features. If you want to contribute, a good place to start is
 [`help-wanted` label](https://github.com/dropbox/sqlalchemy-stubs/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22).
 
-The 0.1 version will be released after we will fix issues [#2](https://github.com/dropbox/sqlalchemy-stubs/issues/2),
-[#5](https://github.com/dropbox/sqlalchemy-stubs/issues/5), and [#7](https://github.com/dropbox/sqlalchemy-stubs/issues/7).
+Currently, some basic use cases like inferring model field types are supported.
 The long term goal is to be able to infer types for more complex situations
 like correctly inferring columns in most compound queries.
 
