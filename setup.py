@@ -2,7 +2,32 @@ from distutils.core import setup
 import os
 
 name = 'sqlalchemy-stubs'
-description = 'Experimental SQLAlchemy stubs'
+description = 'SQLAlchemy stubs and mypy plugin'
+
+install_instructions = """\
+# Experimental SQLAlchemy type stubs and mypy plugin
+
+This package contains type stubs and mypy plugin to provide more precise
+static types and type inference for SQLAlchemy framework. SQLAlchemy uses
+dynamic Python features that are hard to understand by static type checkers,
+this is why the plugin is needed in addition to type stubs.
+
+Currently, some basic use cases like inferring model field types are supported.
+The final goal is to be able to get precise types for most common patterns.
+
+## Installation
+
+```
+pip install sqlalchemy-stubs
+```
+
+Important: you need to enable the plugin in your mypy config file:
+```
+[mypy]
+plugins = sqlmypy
+```
+"""
+
 
 def find_stub_files():
     result = []
@@ -15,17 +40,25 @@ def find_stub_files():
                 result.append(file)
     return result
 
+
 setup(name='sqlalchemy-stubs',
       version='0.1',
       description=description,
-      long_description=description,
+      long_description=install_instructions,
+      long_description_content_type='text/markdown',
       author='Ivan Levkivskyi',
       author_email='levkivskyi@gmail.com',
       license='MIT License',
+      url="https://github.com/dropbox/sqlalchemy-stubs",
       py_modules=['sqlmypy', 'sqltyping'],
       install_requires=[
+          'mypy>=0.660',
           'typing-extensions>=3.6.5'
       ],
       packages=['sqlalchemy-stubs'],
       package_data={'sqlalchemy-stubs': find_stub_files()},
+      classifiers=[
+          'Development Status :: 3 - Alpha',
+          'Programming Language :: Python :: 3'
+      ]
 )
