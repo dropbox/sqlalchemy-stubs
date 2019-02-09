@@ -118,7 +118,7 @@ class Column(SchemaItem, ColumnClause[_T]):
                  server_onupdate: Union[FetchedValue, FunctionElement] = ..., quote: Optional[bool] = ..., unique: bool = ...,
                  system: bool = ..., comment: str = ...) -> None: ...
     @overload
-    def __init__(self, name: str, *args: Any, autoincrement: Union[bool, str] = ...,
+    def __init__(self, name: str, autoincrement: Union[bool, str] = ...,
                  default: Any = ..., doc: str = ..., key: str = ..., index: bool = ..., info: Mapping[str, Any] = ...,
                  nullable: bool = ..., onupdate: Any = ..., primary_key: bool = ..., server_default: Any = ...,
                  server_onupdate: Union[FetchedValue, FunctionElement] = ..., quote: Optional[bool] = ..., unique: bool = ...,
