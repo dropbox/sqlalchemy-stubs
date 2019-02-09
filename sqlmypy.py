@@ -3,10 +3,10 @@ from mypy.plugin import (
     Plugin, FunctionContext, ClassDefContext, DynamicClassDefContext,
     SemanticAnalyzerPluginInterface
 )
-from mypy.plugins.common import add_method
+from mypy.plugins.common import add_method, _get_argument
 from mypy.nodes import (
     NameExpr, Expression, StrExpr, TypeInfo, ClassDef, Block, SymbolTable, SymbolTableNode, GDEF,
-    Argument, Var, ARG_STAR2, MDEF, TupleExpr, RefExpr
+    Argument, Var, ARG_STAR2, MDEF, TupleExpr, RefExpr, AssignmentStmt, CallExpr, MemberExpr
 )
 from mypy.types import (
     UnionType, NoneTyp, Instance, Type, AnyType, TypeOfAny, UninhabitedType, CallableType
@@ -25,6 +25,7 @@ CLAUSE_ELEMENT_NAME = 'sqlalchemy.sql.elements.ClauseElement'  # type: Final
 COLUMN_ELEMENT_NAME = 'sqlalchemy.sql.elements.ColumnElement'  # type: Final
 GROUPING_NAME = 'sqlalchemy.sql.elements.Grouping'  # type: Final
 RELATIONSHIP_NAME = 'sqlalchemy.orm.relationships.RelationshipProperty'  # type: Final
+FOREIGN_KEY_NAME = 'sqlalchemy.sql.schema.ForeignKey'  # type: Final
 
 
 def is_declarative(info: TypeInfo) -> bool:
@@ -65,17 +66,17 @@ class BasicSQLAlchemyPlugin(Plugin):
                 return model_hook
         return None
 
-    def get_dynamic_class_hook(self, fullname: str) -> CB[DynamicClassDefContext]:
+    def get_dynamic_class_hook(self, fullname: str):
         if fullname == 'sqlalchemy.ext.declarative.api.declarative_base':
             return decl_info_hook
         return None
 
-    def get_class_decorator_hook(self, fullname: str) -> CB[ClassDefContext]:
+    def get_class_decorator_hook(self, fullname: str):
         if fullname == 'sqlalchemy.ext.declarative.api.as_declarative':
             return decl_deco_hook
         return None
 
-    def get_base_class_hook(self, fullname: str) -> CB[ClassDefContext]:
+    def get_base_class_hook(self, fullname: str):
         sym = self.lookup_fully_qualified(fullname)
         if sym and isinstance(sym.node, TypeInfo):
             if is_declarative(sym.node):
@@ -109,6 +110,32 @@ def add_model_init_hook(ctx: ClassDefContext) -> None:
     kw_arg = Argument(variable=var, type_annotation=any, initializer=None, kind=ARG_STAR2)
     add_method(ctx, '__init__', [kw_arg], NoneTyp())
     ctx.cls.info.metadata.setdefault('sqlalchemy', {})['generated_init'] = True
+
+    for stmt in ctx.cls.defs.body:
+        if not (isinstance(stmt, AssignmentStmt) and len(stmt.lvalues) == 1 and isinstance(stmt.lvalues[0], NameExpr)):
+            continue
+
+        if stmt.lvalues[0].name == "__tablename__" and isinstance(stmt.rvalue, StrExpr):
+            ctx.cls.info.metadata.setdefault('sqlalchemy', {})['tablename'] = stmt.rvalue.value
+
+        if isinstance(stmt.rvalue, CallExpr) and stmt.rvalue.callee.fullname == COLUMN_NAME:
+            colname = stmt.lvalues[0].name
+            has_explicit_colname = stmt.rvalue
+            ctx.cls.info.metadata.setdefault('sqlalchemy', {}).setdefault('columns', []).append(colname)
+            for arg in stmt.rvalue.args:
+                if isinstance(arg, CallExpr) and arg.callee.fullname == FOREIGN_KEY_NAME and len(arg.args) >= 1:
+                    fk = arg.args[0]
+                    if isinstance(fk, StrExpr):
+                        *_, parent_table, parent_col = fk.value.split(".")
+                        ctx.cls.info.metadata.setdefault('sqlalchemy', {}).setdefault('foreign_keys', {})[colname] = {
+                            "column": parent_col,
+                            "table": parent_table
+                        }
+                    elif isinstance(fk, MemberExpr):
+                        ctx.cls.info.metadata.setdefault('sqlalchemy', {}).setdefault('foreign_keys', {})[colname] = {
+                            "column": fk.name,
+                            "model": fk.expr.fullname
+                        }
 
     # Also add a selection of auto-generated attributes.
     sym = ctx.api.lookup_fully_qualified_or_none('sqlalchemy.sql.schema.Table')
