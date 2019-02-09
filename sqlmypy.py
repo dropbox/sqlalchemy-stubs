@@ -21,6 +21,9 @@ T = TypeVar('T')
 CB = Optional[Callable[[T], None]]
 
 COLUMN_NAME = 'sqlalchemy.sql.schema.Column'  # type: Final
+CLAUSE_ELEMENT_NAME = 'sqlalchemy.sql.elements.ClauseElement'  # type: Final
+COLUMN_ELEMENT_NAME = 'sqlalchemy.sql.elements.ColumnElement'  # type: Final
+GROUPING_NAME = 'sqlalchemy.sql.elements.Grouping'  # type: Final
 RELATIONSHIP_NAME = 'sqlalchemy.orm.relationships.RelationshipProperty'  # type: Final
 
 
@@ -51,6 +54,8 @@ class BasicSQLAlchemyPlugin(Plugin):
     def get_function_hook(self, fullname: str) -> Optional[Callable[[FunctionContext], Type]]:
         if fullname == COLUMN_NAME:
             return column_hook
+        if fullname == GROUPING_NAME:
+            return grouping_hook
         if fullname == RELATIONSHIP_NAME:
             return relationship_hook
         sym = self.lookup_fully_qualified(fullname)
@@ -291,6 +296,25 @@ def column_hook(ctx: FunctionContext) -> Type:
     return Instance(ctx.default_return_type.type, [UnionType([arg_type, NoneTyp()])],
                     line=ctx.default_return_type.line,
                     column=ctx.default_return_type.column)
+
+
+def grouping_hook(ctx: FunctionContext) -> Type:
+    """Infer better types for Grouping calls.
+
+    Examples:
+        Grouping(text('asdf')) -> Grouping[None]
+        Grouping(Column(String), nullable=False) -> Grouping[str]
+        Grouping(Column(String)) -> Grouping[Optional[str]]
+    """
+    assert isinstance(ctx.default_return_type, Instance)
+
+    element_arg_type = get_argtype_by_name(ctx, 'element')
+
+    if element_arg_type is not None and isinstance(element_arg_type, Instance):
+        if element_arg_type.type.has_base(CLAUSE_ELEMENT_NAME) and not \
+                element_arg_type.type.has_base(COLUMN_ELEMENT_NAME):
+            return ctx.default_return_type.copy_modified(args=[NoneTyp()])
+    return ctx.default_return_type
 
 
 def relationship_hook(ctx: FunctionContext) -> Type:
