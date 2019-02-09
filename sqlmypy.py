@@ -1,17 +1,24 @@
-from mypy.plugin import Plugin, FunctionContext, ClassDefContext
+from mypy.mro import calculate_mro, MroError
+from mypy.plugin import (
+    Plugin, FunctionContext, ClassDefContext, DynamicClassDefContext,
+    SemanticAnalyzerPluginInterface
+)
 from mypy.plugins.common import add_method
 from mypy.nodes import (
     NameExpr, Expression, StrExpr, TypeInfo, ClassDef, Block, SymbolTable, SymbolTableNode, GDEF,
-    Argument, Var, ARG_STAR2, MDEF
+    Argument, Var, ARG_STAR2, MDEF, TupleExpr, RefExpr
 )
 from mypy.types import (
     UnionType, NoneTyp, Instance, Type, AnyType, TypeOfAny, UninhabitedType, CallableType
 )
 from mypy.typevars import fill_typevars_with_any
 
-from typing import Optional, Callable, Dict, TYPE_CHECKING
+from typing import Optional, Callable, Dict, TYPE_CHECKING, List, Type as TypingType, TypeVar
 if TYPE_CHECKING:
     from typing_extensions import Final
+
+T = TypeVar('T')
+CB = Optional[Callable[[T], None]]
 
 COLUMN_NAME = 'sqlalchemy.sql.schema.Column'  # type: Final
 CLAUSE_ELEMENT_NAME = 'sqlalchemy.sql.elements.ClauseElement'  # type: Final
@@ -58,17 +65,17 @@ class BasicSQLAlchemyPlugin(Plugin):
                 return model_hook
         return None
 
-    def get_dynamic_class_hook(self, fullname):
+    def get_dynamic_class_hook(self, fullname: str) -> CB[DynamicClassDefContext]:
         if fullname == 'sqlalchemy.ext.declarative.api.declarative_base':
             return decl_info_hook
         return None
 
-    def get_class_decorator_hook(self, fullname: str) -> Optional[Callable[[ClassDefContext], None]]:
+    def get_class_decorator_hook(self, fullname: str) -> CB[ClassDefContext]:
         if fullname == 'sqlalchemy.ext.declarative.api.as_declarative':
             return decl_deco_hook
         return None
 
-    def get_base_class_hook(self, fullname: str) -> Optional[Callable[[ClassDefContext], None]]:
+    def get_base_class_hook(self, fullname: str) -> CB[ClassDefContext]:
         sym = self.lookup_fully_qualified(fullname)
         if sym and isinstance(sym.node, TypeInfo):
             if is_declarative(sym.node):
@@ -113,9 +120,9 @@ def add_model_init_hook(ctx: ClassDefContext) -> None:
     add_var_to_class('__table__', typ, ctx.cls.info)
 
 
-def add_metadata_var(ctx: ClassDefContext, info: TypeInfo) -> None:
+def add_metadata_var(api: SemanticAnalyzerPluginInterface, info: TypeInfo) -> None:
     """Add .metadata attribute to a declarative base."""
-    sym = ctx.api.lookup_fully_qualified_or_none('sqlalchemy.sql.schema.MetaData')
+    sym = api.lookup_fully_qualified_or_none('sqlalchemy.sql.schema.MetaData')
     if sym:
         assert isinstance(sym.node, TypeInfo)
         typ = Instance(sym.node, [])  # type: Type
@@ -135,10 +142,10 @@ def decl_deco_hook(ctx: ClassDefContext) -> None:
             ...
     """
     set_declarative(ctx.cls.info)
-    add_metadata_var(ctx, ctx.cls.info)
+    add_metadata_var(ctx.api, ctx.cls.info)
 
 
-def decl_info_hook(ctx):
+def decl_info_hook(ctx: DynamicClassDefContext) -> None:
     """Support dynamically defining declarative bases.
 
     For example:
@@ -146,19 +153,42 @@ def decl_info_hook(ctx):
 
         Base = declarative_base()
     """
+    cls_bases = []  # type: List[Instance]
+
+    # Passing base classes as positional arguments is currently not handled.
+    if 'cls' in ctx.call.arg_names:
+        declarative_base_cls_arg = ctx.call.args[ctx.call.arg_names.index("cls")]
+        if isinstance(declarative_base_cls_arg, TupleExpr):
+            items = [item for item in declarative_base_cls_arg.items]
+        else:
+            items = [declarative_base_cls_arg]
+
+        for item in items:
+            if isinstance(item, RefExpr) and isinstance(item.node, TypeInfo):
+                base = fill_typevars_with_any(item.node)
+                # TODO: Support tuple types?
+                if isinstance(base, Instance):
+                    cls_bases.append(base)
+
     class_def = ClassDef(ctx.name, Block([]))
     class_def.fullname = ctx.api.qualified_name(ctx.name)
 
     info = TypeInfo(SymbolTable(), class_def, ctx.api.cur_mod_id)
     class_def.info = info
     obj = ctx.api.builtin_type('builtins.object')
-    info.mro = [info, obj.type]
-    info.bases = [obj]
+    info.bases = cls_bases or [obj]
+    try:
+        calculate_mro(info)
+    except MroError:
+        ctx.api.fail("Not able to calculate MRO for declarative base", ctx.call)
+        info.bases = [obj]
+        info.fallback_to_any = True
+
     ctx.api.add_symbol_table_node(ctx.name, SymbolTableNode(GDEF, info))
     set_declarative(info)
 
     # TODO: check what else is added.
-    add_metadata_var(ctx, info)
+    add_metadata_var(ctx.api, info)
 
 
 def model_hook(ctx: FunctionContext) -> Type:
@@ -192,13 +222,15 @@ def model_hook(ctx: FunctionContext) -> Type:
             # TODO: support TypedDict?
             continue
         if actual_name not in expected_types:
-            ctx.api.fail('Unexpected column "{}" for model "{}"'.format(actual_name, model.name()),
+            ctx.api.fail('Unexpected column "{}" for model "{}"'.format(actual_name,
+                                                                        model.name()),
                          ctx.context)
             continue
         # Using private API to simplify life.
-        ctx.api.check_subtype(actual_type, expected_types[actual_name],
+        ctx.api.check_subtype(actual_type, expected_types[actual_name],  # type: ignore
                               ctx.context,
-                              'Incompatible type for "{}" of "{}"'.format(actual_name, model.name()),
+                              'Incompatible type for "{}" of "{}"'.format(actual_name,
+                                                                          model.name()),
                               'got', 'expected')
     return ctx.default_return_type
 
@@ -315,16 +347,19 @@ def relationship_hook(ctx: FunctionContext) -> Type:
 
     if isinstance(arg, StrExpr):
         name = arg.value
-        # Private API for local lookup, but probably needs to be public.
+        sym = None  # type: Optional[SymbolTableNode]
         try:
-            sym = ctx.api.lookup_qualified(name)  # type: Optional[SymbolTableNode]
+            # Private API for local lookup, but probably needs to be public.
+            sym = ctx.api.lookup_qualified(name)  # type: ignore
         except (KeyError, AssertionError):
-            sym = None
+            pass
         if sym and isinstance(sym.node, TypeInfo):
-            new_arg = fill_typevars_with_any(sym.node)
+            new_arg = fill_typevars_with_any(sym.node)  # type: Type
         else:
             ctx.api.fail('Cannot find model "{}"'.format(name), ctx.context)
-            ctx.api.note('Only imported models can be found; use "if TYPE_CHECKING: ..." to avoid import cycles',
+            # TODO: Add note() to public API.
+            ctx.api.note('Only imported models can be found;'  # type: ignore
+                         ' use "if TYPE_CHECKING: ..." to avoid import cycles',
                          ctx.context)
             new_arg = AnyType(TypeOfAny.from_error)
     else:
@@ -359,5 +394,5 @@ def parse_bool(expr: Expression) -> Optional[bool]:
     return None
 
 
-def plugin(version):
+def plugin(version: str) -> TypingType[Plugin]:
     return BasicSQLAlchemyPlugin
