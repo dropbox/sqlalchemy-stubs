@@ -377,7 +377,7 @@ def has_foreign_keys(local_model: TypeInfo, remote_model: TypeInfo) -> bool:
     remote_metadata = remote_model.metadata.get("sqlalchemy", {})
 
     for fk in local_metadata.get("foreign_keys", {}).values():
-        if 'model_fullname' in fk and remote_model.fullname == fk['model_fullname']:
+        if 'model_fullname' in fk and remote_model.fullname() == fk['model_fullname']:
             return True
         if 'table_name' in fk:
             if 'table_name' not in remote_metadata:
