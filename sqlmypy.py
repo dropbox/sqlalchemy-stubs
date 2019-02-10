@@ -117,7 +117,7 @@ def add_model_init_hook(ctx: ClassDefContext) -> None:
 
         # We currently only handle setting __tablename__ as a class attribute, and not through a property.
         if stmt.lvalues[0].name == "__tablename__" and isinstance(stmt.rvalue, StrExpr):
-            ctx.cls.info.metadata.setdefault('sqlalchemy', {})['tablename'] = stmt.rvalue.value
+            ctx.cls.info.metadata.setdefault('sqlalchemy', {})['table_name'] = stmt.rvalue.value
 
         if isinstance(stmt.rvalue, CallExpr) and stmt.rvalue.callee.fullname == COLUMN_NAME:
             # Save columns. The name of a column on the db side can be different from the one inside the SA model.
@@ -363,6 +363,54 @@ def grouping_hook(ctx: FunctionContext) -> Type:
     return ctx.default_return_type
 
 
+class IncompleteModelMetadata(Exception):
+    pass
+
+
+def has_foreign_keys(local_model: TypeInfo, remote_model: TypeInfo) -> bool:
+    """Tells if `local_model` has a fk to `remote_model`.
+    Will raise an `IncompleteModelMetadata` if some mandatory metadata is missing.
+    """
+    local_metadata = local_model.metadata.get("sqlalchemy", {})
+    remote_metadata = remote_model.metadata.get("sqlalchemy", {})
+
+    for fk in local_metadata.get("foreign_keys", {}).values():
+        if 'model_fullname' in fk and remote_model.fullname == fk['model_fullname']:
+            return True
+        if 'table_name' in fk:
+            if 'table_name' not in remote_metadata:
+                raise IncompleteModelMetadata
+            # TODO: handle different schemas
+            if remote_metadata['table_name'] == fk['table_name']:
+                return True
+
+    return False
+
+
+def is_relationship_iterable(ctx: FunctionContext, local_model: TypeInfo, remote_model: TypeInfo) -> bool:
+    """Tries to guess if the relationship is onetoone/onetomany/manytoone.
+
+    Currently we handle the most current case, where a model relates to the other one through a relationship.
+    We also handle cases where secondaryjoin argument is provided.
+    We don't handle advanced usecases (foreign keys on both sides, primaryjoin, etc.).
+    """
+    secondaryjoin = get_argument_by_name(ctx, 'secondaryjoin')
+
+    if secondaryjoin is not None:
+        return True
+
+    try:
+        can_be_many_to_one = has_foreign_keys(local_model, remote_model)
+        can_be_one_to_many = has_foreign_keys(remote_model, local_model)
+
+        if not can_be_many_to_one and can_be_one_to_many:
+            return True
+    except IncompleteModelMetadata:
+        pass
+
+    return False  # Assume relationship is not iterable, if we weren't able to guess better.
+
+
 def relationship_hook(ctx: FunctionContext) -> Type:
     """Support basic use cases for relationships.
 
@@ -415,10 +463,17 @@ def relationship_hook(ctx: FunctionContext) -> Type:
             # Something complex, stay silent for now.
             new_arg = AnyType(TypeOfAny.special_form)
 
+    current_model = ctx.api.scope.active_class()
+    assert current_model is not None
+
+    # TODO: handle backref relationships
+
     # We figured out, the model type. Now check if we need to wrap it in Iterable
     if uselist_arg:
         if parse_bool(uselist_arg):
             new_arg = ctx.api.named_generic_type('typing.Iterable', [new_arg])
+    elif not isinstance(new_arg, AnyType) and is_relationship_iterable(ctx, current_model, new_arg.type):
+        new_arg = ctx.api.named_generic_type('typing.Iterable', [new_arg])
     else:
         if has_annotation:
             # If there is an annotation we use it as a source of truth.
