@@ -115,26 +115,45 @@ def add_model_init_hook(ctx: ClassDefContext) -> None:
         if not (isinstance(stmt, AssignmentStmt) and len(stmt.lvalues) == 1 and isinstance(stmt.lvalues[0], NameExpr)):
             continue
 
+        # We currently only handle setting __tablename__ as a class attribute, and not through a property.
         if stmt.lvalues[0].name == "__tablename__" and isinstance(stmt.rvalue, StrExpr):
             ctx.cls.info.metadata.setdefault('sqlalchemy', {})['tablename'] = stmt.rvalue.value
 
         if isinstance(stmt.rvalue, CallExpr) and stmt.rvalue.callee.fullname == COLUMN_NAME:
-            colname = stmt.lvalues[0].name
-            has_explicit_colname = stmt.rvalue
-            ctx.cls.info.metadata.setdefault('sqlalchemy', {}).setdefault('columns', []).append(colname)
+            # Save columns. The name of a column on the db side can be different from the one inside the SA model.
+            sa_column_name = stmt.lvalues[0].name
+
+            db_column_name = None  # type: Optional[str]
+            if 'name' in stmt.rvalue.arg_names:
+                name_str_expr = stmt.rvalue.args[stmt.rvalue.arg_names.index('name')]
+                assert isinstance(name_str_expr, StrExpr)
+                db_column_name = name_str_expr.value
+            else:
+                if len(stmt.rvalue.args) >= 1 and isinstance(stmt.rvalue.args[0], StrExpr):
+                    db_column_name = stmt.rvalue.args[0].value
+
+            ctx.cls.info.metadata.setdefault('sqlalchemy', {}).setdefault('columns', []).append(
+                {"sa_name": sa_column_name, "db_name": db_column_name or sa_column_name}
+            )
+
+            # Save foreign keys.
             for arg in stmt.rvalue.args:
                 if isinstance(arg, CallExpr) and arg.callee.fullname == FOREIGN_KEY_NAME and len(arg.args) >= 1:
                     fk = arg.args[0]
                     if isinstance(fk, StrExpr):
-                        *_, parent_table, parent_col = fk.value.split(".")
-                        ctx.cls.info.metadata.setdefault('sqlalchemy', {}).setdefault('foreign_keys', {})[colname] = {
-                            "column": parent_col,
-                            "table": parent_table
+                        *r, parent_table_name, parent_db_col_name = fk.value.split(".")
+                        assert len(r) <= 1
+                        ctx.cls.info.metadata.setdefault('sqlalchemy', {}).setdefault('foreign_keys',
+                                                                                      {})[sa_column_name] = {
+                            "db_name": parent_db_col_name,
+                            "table_name": parent_table_name,
+                            "schema": r[0] if r else None
                         }
                     elif isinstance(fk, MemberExpr):
-                        ctx.cls.info.metadata.setdefault('sqlalchemy', {}).setdefault('foreign_keys', {})[colname] = {
-                            "column": fk.name,
-                            "model": fk.expr.fullname
+                        ctx.cls.info.metadata.setdefault('sqlalchemy', {}).setdefault('foreign_keys',
+                                                                                      {})[sa_column_name] = {
+                            "sa_name": fk.name,
+                            "model_fullname": fk.expr.fullname
                         }
 
     # Also add a selection of auto-generated attributes.
@@ -414,10 +433,10 @@ def relationship_hook(ctx: FunctionContext) -> Type:
 # We really need to add this to TypeChecker API
 def parse_bool(expr: Expression) -> Optional[bool]:
     if isinstance(expr, NameExpr):
-         if expr.fullname == 'builtins.True':
-             return True
-         if expr.fullname == 'builtins.False':
-             return False
+        if expr.fullname == 'builtins.True':
+            return True
+        if expr.fullname == 'builtins.False':
+            return False
     return None
 
 
