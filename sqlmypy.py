@@ -66,17 +66,17 @@ class BasicSQLAlchemyPlugin(Plugin):
                 return model_hook
         return None
 
-    def get_dynamic_class_hook(self, fullname: str):
+    def get_dynamic_class_hook(self, fullname: str) -> CB[DynamicClassDefContext]:
         if fullname == 'sqlalchemy.ext.declarative.api.declarative_base':
             return decl_info_hook
         return None
 
-    def get_class_decorator_hook(self, fullname: str):
+    def get_class_decorator_hook(self, fullname: str) -> CB[ClassDefContext]:
         if fullname == 'sqlalchemy.ext.declarative.api.as_declarative':
             return decl_deco_hook
         return None
 
-    def get_base_class_hook(self, fullname: str):
+    def get_base_class_hook(self, fullname: str) -> CB[ClassDefContext]:
         sym = self.lookup_fully_qualified(fullname)
         if sym and isinstance(sym.node, TypeInfo):
             if is_declarative(sym.node):
@@ -119,7 +119,8 @@ def add_model_init_hook(ctx: ClassDefContext) -> None:
         if stmt.lvalues[0].name == "__tablename__" and isinstance(stmt.rvalue, StrExpr):
             ctx.cls.info.metadata.setdefault('sqlalchemy', {})['table_name'] = stmt.rvalue.value
 
-        if isinstance(stmt.rvalue, CallExpr) and stmt.rvalue.callee.fullname == COLUMN_NAME:
+        if (isinstance(stmt.rvalue, CallExpr) and isinstance(stmt.rvalue.callee, NameExpr)
+                and stmt.rvalue.callee.fullname == COLUMN_NAME):
             # Save columns. The name of a column on the db side can be different from the one inside the SA model.
             sa_column_name = stmt.lvalues[0].name
 
@@ -138,7 +139,8 @@ def add_model_init_hook(ctx: ClassDefContext) -> None:
 
             # Save foreign keys.
             for arg in stmt.rvalue.args:
-                if isinstance(arg, CallExpr) and arg.callee.fullname == FOREIGN_KEY_NAME and len(arg.args) >= 1:
+                if (isinstance(arg, CallExpr) and isinstance(arg.callee, NameExpr)
+                        and arg.callee.fullname == FOREIGN_KEY_NAME and len(arg.args) >= 1):
                     fk = arg.args[0]
                     if isinstance(fk, StrExpr):
                         *r, parent_table_name, parent_db_col_name = fk.value.split(".")
@@ -149,7 +151,7 @@ def add_model_init_hook(ctx: ClassDefContext) -> None:
                             "table_name": parent_table_name,
                             "schema": r[0] if r else None
                         }
-                    elif isinstance(fk, MemberExpr):
+                    elif isinstance(fk, MemberExpr) and isinstance(fk.expr, NameExpr):
                         ctx.cls.info.metadata.setdefault('sqlalchemy', {}).setdefault('foreign_keys',
                                                                                       {})[sa_column_name] = {
                             "sa_name": fk.name,
@@ -463,7 +465,8 @@ def relationship_hook(ctx: FunctionContext) -> Type:
             # Something complex, stay silent for now.
             new_arg = AnyType(TypeOfAny.special_form)
 
-    current_model = ctx.api.scope.active_class()
+    # use private api
+    current_model = ctx.api.scope.active_class()  # type: ignore # type: TypeInfo
     assert current_model is not None
 
     # TODO: handle backref relationships
@@ -472,7 +475,7 @@ def relationship_hook(ctx: FunctionContext) -> Type:
     if uselist_arg:
         if parse_bool(uselist_arg):
             new_arg = ctx.api.named_generic_type('typing.Iterable', [new_arg])
-    elif not isinstance(new_arg, AnyType) and is_relationship_iterable(ctx, current_model, new_arg.type):
+    elif isinstance(new_arg, Instance) and is_relationship_iterable(ctx, current_model, new_arg.type):
         new_arg = ctx.api.named_generic_type('typing.Iterable', [new_arg])
     else:
         if has_annotation:
