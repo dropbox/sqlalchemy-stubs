@@ -36,7 +36,6 @@ user: User
 reveal_type(user.id)  # E: Revealed type is 'builtins.int*'
 reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[Union[builtins.str*, None]]'
 User.name.foo  # E: "Column[Optional[str]]" has no attribute "foo"
-User.name.ilike  # works just fine
-User.name.ilike('hi')  # works just fine
+User.name.ilike('hi')  # OK
 User.name.ilike(5)  # E: Argument 1 to "ilike" of "ColumnOperators" has incompatible type "int"; expected "str"
 [out]
