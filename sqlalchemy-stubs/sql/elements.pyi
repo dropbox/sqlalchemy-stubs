@@ -83,12 +83,12 @@ class BindParameter(ColumnElement[_T]):
     @overload
     def __init__(self, key: str, value: _T = ..., type_: Optional[Type[TypeEngine[_T]]] = ..., unique: bool = ...,
                  required: bool = ..., quote: Optional[Any] = ..., callable_: Optional[Callable[[], _T]] = ...,
-                 isoutparam: bool = ..., _compared_to_operator: Optional[Any] = ...,
+                 expanding: bool = ..., isoutparam: bool = ..., _compared_to_operator: Optional[Any] = ...,
                  _compared_to_type: Optional[Any] = ...) -> None: ...
     @overload
     def __init__(self, key: str, value: _T = ..., type_: Optional[TypeEngine[_T]] = ..., unique: bool = ...,
                  required: bool = ..., quote: Optional[Any] = ..., callable_: Optional[Callable[[], _T]] = ...,
-                 isoutparam: bool = ..., _compared_to_operator: Optional[Any] = ...,
+                 expanding: bool = ..., isoutparam: bool = ..., _compared_to_operator: Optional[Any] = ...,
                  _compared_to_type: Optional[Any] = ...) -> None: ...
     @property
     def effective_value(self) -> _T: ...

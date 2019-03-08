@@ -219,3 +219,64 @@ class User(Base):
 record = {'name': 'John Doe'}
 User(**record)  # OK
 [out]
+
+[case testGrouping]
+from sqlalchemy import Column, String, text
+from sqlalchemy.sql.elements import Grouping
+
+reveal_type(Grouping(Column(String, nullable=False)))  # E: Revealed type is 'sqlalchemy.sql.elements.Grouping[builtins.str*]'
+reveal_type(Grouping(text('foo')))  # E: Revealed type is 'sqlalchemy.sql.elements.Grouping[None]'
+
+[case testDeclarativeBaseWithBaseClass]
+from sqlalchemy import Column, Integer, String
+from base import Base
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+
+user: User
+reveal_type(user.f())  # E: Revealed type is 'builtins.str'
+
+[file base.py]
+from sqlalchemy.ext.declarative import declarative_base
+
+class Model:
+    def f(self) -> str: ...
+Base = declarative_base(cls=Model)
+[out]
+
+[case testDeclarativeBaseWithMultipleBaseClasses]
+from sqlalchemy import Column, Integer, String
+from base import Base
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+
+user: User
+reveal_type(user.f())  # E: Revealed type is 'builtins.str'
+reveal_type(user.g())  # E: Revealed type is 'builtins.int'
+
+[file base.py]
+from sqlalchemy.ext.declarative import declarative_base
+
+class Model:
+    def f(self) -> str: ...
+class Model2:
+    def g(self) -> int: ...
+Base = declarative_base(cls=(Model, Model2))
+[out]
+
+[case testDeclarativeBaseWithBaseClassWrongMRO]
+from sqlalchemy.ext.declarative import declarative_base
+
+class M1:
+    ...
+class M2(M1):
+    ...
+Base = declarative_base(cls=(M1, M2))  # E: Not able to calculate MRO for declarative base
+reveal_type(Base)  # E: Revealed type is 'Any'
+[out]

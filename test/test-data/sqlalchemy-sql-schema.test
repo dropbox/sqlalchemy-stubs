@@ -39,3 +39,24 @@ User.name.foo  # E: "Column[Optional[str]]" has no attribute "foo"
 User.name.ilike('hi')  # OK
 User.name.ilike(5)  # E: Argument 1 to "ilike" of "ColumnOperators" has incompatible type "int"; expected "str"
 [out]
+
+[case testColumnWithForeignKey]
+from sqlalchemy import Column, Table, ForeignKey, String, Integer, MetaData
+metadata = MetaData()
+user_preference = Table('user_preference', metadata,
+    Column('pref_id', Integer, primary_key=True),
+    Column('user_id', Integer, ForeignKey("user.user_id"), nullable=False),
+    Column('pref_name', String(40), nullable=False),
+    Column('pref_value', String(100))
+)
+[out]
+
+[case testColumnWithForeignKeyDeclarative]
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, ForeignKey
+Base = declarative_base()
+
+class Mytable(Base):
+    __tablename__ = 'mytable'
+    objid = Column(ForeignKey('othertable.objid'), index=True)
+[out]
