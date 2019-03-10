@@ -382,7 +382,8 @@ def has_foreign_keys(local_model: TypeInfo, remote_model: TypeInfo) -> bool:
         if 'table_name' in fk:
             if 'table_name' not in remote_metadata:
                 raise IncompleteModelMetadata
-            # TODO: handle different schemas
+            # TODO: handle different schemas.
+            #  It's not straightforward because schema can be specified in `__table_args__` or in metadata for example
             if remote_metadata['table_name'] == fk['table_name']:
                 return True
 
