@@ -60,3 +60,11 @@ t.insert({column('name', String): 'foo'})
 # t.insert({column('name', String): 'foo',
 #          'description': 'bar'})
 [out]
+
+[case testSelectableOuterjoinOnclause]
+from sqlalchemy import and_, column, table
+
+t = table('user', column('id'), column('name'), column('description'), column('articles'))
+st = table('stuff', column('id'))
+st.outerjoin(t, onclause=and_(st.c.id == t.c.id, t.c.name == t.c.description))
+[out]

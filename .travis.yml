@@ -41,7 +41,7 @@ before_install: |
   pip install -U pip setuptools wheel
 
 install: |
-  pip install -r external/mypy/test-requirements.txt
+  pip install -Ur external/mypy/test-requirements.txt
   pip install -U .
   python2 -m pip install --user -U .
   export PYTHONPATH=`pwd`/external/mypy
