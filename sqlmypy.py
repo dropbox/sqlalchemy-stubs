@@ -199,7 +199,7 @@ def model_hook(ctx: FunctionContext) -> Type:
           argument types is 'Any'.
     """
     assert isinstance(ctx.default_return_type, Instance)
-    model = ctx.default_return_type.type
+    model: TypeInfo = ctx.default_return_type.type
     metadata = model.metadata.get('sqlalchemy')
     if not metadata or not metadata.get('generated_init'):
         return ctx.default_return_type
@@ -207,12 +207,13 @@ def model_hook(ctx: FunctionContext) -> Type:
     # Collect column names and types defined in the model
     # TODO: cache this?
     expected_types = {}  # type: Dict[str, Type]
-    for name, sym in model.names.items():
-        if isinstance(sym.node, Var) and isinstance(sym.node.type, Instance):
-            tp = sym.node.type
-            if tp.type.fullname() in (COLUMN_NAME, RELATIONSHIP_NAME):
-                assert len(tp.args) == 1
-                expected_types[name] = tp.args[0]
+    for cls in model.mro[::-1]:
+        for name, sym in cls.names.items():
+            if isinstance(sym.node, Var) and isinstance(sym.node.type, Instance):
+                tp = sym.node.type
+                if tp.type.fullname() in (COLUMN_NAME, RELATIONSHIP_NAME):
+                    assert len(tp.args) == 1
+                    expected_types[name] = tp.args[0]
 
     assert len(ctx.arg_names) == 1  # only **kwargs in generated __init__
     assert len(ctx.arg_types) == 1
