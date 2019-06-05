@@ -400,13 +400,22 @@ def session_query_hook(ctx: MethodContext) -> Type:
 
         session.query(User) -> Query[User]
         session.query(User, Order) -> Query[Tuple[User, Order]]
+        session.query(User, User.id) -> Query[Tuple[User, int]]
     """
     # TODO take a look at Session.query_cls? Do we have to do this with generics?
 
     def map_arg(arg: Type) -> Type:
+        # A model class (well, in this case a callable constructor)
+        # Example:
+        # session.query(Employee) -> Query[Employee]
         if isinstance(arg, CallableType) and arg.is_type_obj():
-            # a model class (well, in this case a callable constructor)
             return arg.ret_type
+
+        # Example:
+        # session.query(Employee.id) -> Query[int]
+        if isinstance(arg, Instance) and arg.type.fullname() == COLUMN_NAME:
+            assert len(arg.args) == 1, "Column[...] should have only one generic argument"
+            return arg.args[0]
 
         return AnyType(TypeOfAny.from_error)
 
