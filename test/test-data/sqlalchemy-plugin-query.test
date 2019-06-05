@@ -1,0 +1,50 @@
+[case queryWithSingleModel]
+# flags: --strict-optional
+
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm.session import Session
+
+Base = declarative_base()
+
+class User(Base):
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+
+
+session: Session
+
+query = session.query(User)
+reveal_type(query) # E: Revealed type is 'sqlalchemy.orm.query.Query[main.User]'
+reveal_type(query.get(123)) # E: Revealed type is 'Union[main.User*, None]'
+reveal_type(query.all()) # E: Revealed type is 'builtins.list[main.User*]'
+reveal_type(iter(query)) # E: Revealed type is 'typing.Iterator[main.User*]'
+
+
+[case queryWithMultipleModels]
+# flags: --strict-optional
+
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm.session import Session
+
+Base = declarative_base()
+
+
+class Employee(Base):
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    email = Column(String, nullable=False)
+
+
+class LoginInfo(Base):
+    id = Column(Integer, ForeignKey(Employee.id), primary_key=True)
+    password_hash = Column(String, nullable=False)
+
+
+session: Session
+query = session.query(Employee, LoginInfo)
+reveal_type(query)  # E: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[main.Employee, main.LoginInfo]]'
+reveal_type(query.get(123))  # E: Revealed type is 'Union[Tuple[main.Employee, main.LoginInfo], None]'
+reveal_type(query.all())  # E: Revealed type is 'builtins.list[Tuple[main.Employee, main.LoginInfo]]'
+reveal_type(iter(query))  # E: Revealed type is 'typing.Iterator[Tuple[main.Employee, main.LoginInfo]]'
