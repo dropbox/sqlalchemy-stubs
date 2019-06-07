@@ -41,7 +41,7 @@ class LoginInfo(Base):
 
 session: Session
 query = session.query(Employee, LoginInfo)
-reveal_type(query)  # E: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[main.Employee, main.LoginInfo]]'
+reveal_type(query)  # E: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[main.Employee, main.LoginInfo, fallback=sqlalchemy.util._collections.AbstractKeyedTuple[Any]]]'
 
 [case queryFromModelAndColumn]
 # flags: --strict-optional
@@ -60,7 +60,7 @@ class User(Base):
 session: Session
 
 query = session.query(User, User.id)
-reveal_type(query) # E: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[main.User, builtins.int*]]'
+reveal_type(query) # E: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[main.User, builtins.int*, fallback=sqlalchemy.util._collections.AbstractKeyedTuple[Any]]]'
 
 
 [case testQueryMethods]
@@ -81,3 +81,31 @@ query: Query[User]
 reveal_type(query.get(123)) # E: Revealed type is 'Union[main.User*, None]'
 reveal_type(query.all()) # E: Revealed type is 'builtins.list[main.User*]'
 reveal_type(iter(query)) # E: Revealed type is 'typing.Iterator[main.User*]'
+
+[case usesAbstractKeyedTuple]
+# flags: --strict-optional
+
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session, Query
+
+Base = declarative_base()
+
+class User(Base):
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+
+
+session: Session
+query = session.query(User.id, User.name)
+reveal_type(query)  # E: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[builtins.int*, builtins.str*, fallback=sqlalchemy.util._collections.AbstractKeyedTuple[Any]]]'
+row = query.one()
+
+col1, col2 = row
+reveal_type(col1)  # E: Revealed type is 'builtins.int*'
+reveal_type(col2)  # E: Revealed type is 'builtins.str*'
+
+reveal_type(row.keys())  # E: Revealed type is 'builtins.list[builtins.str]'
+
+x = row.allow_attribute_access
+reveal_type(x)  # E: Revealed type is 'Any'

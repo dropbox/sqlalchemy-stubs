@@ -425,7 +425,7 @@ def session_query_hook(ctx: MethodContext) -> Type:
     if len(args) == 1:
         final_arg = args[0]
     else:
-        fallback = ctx.api.named_type('builtins.tuple')
+        fallback = ctx.api.named_type('sqlalchemy.util._collections.AbstractKeyedTuple')
         final_arg = TupleType(args, fallback, implicit=True)
 
     return ctx.default_return_type.copy_modified(args=[final_arg])
