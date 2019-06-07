@@ -394,7 +394,7 @@ def relationship_hook(ctx: FunctionContext) -> Type:
 
 def session_query_hook(ctx: MethodContext) -> Type:
     """
-    Turns session.query(...) into generic Query.
+    Turns session.query(...) into typed Query.
 
     Examples:
 
@@ -417,7 +417,7 @@ def session_query_hook(ctx: MethodContext) -> Type:
             assert len(arg.args) == 1, "Column[...] should have only one generic argument"
             return arg.args[0]
 
-        return AnyType(TypeOfAny.from_error)
+        return AnyType(TypeOfAny.implementation_artifact)
 
     # take positional arguments and map them
     args = [map_arg(arg) for arg in ctx.arg_types[0]]
