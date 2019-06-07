@@ -60,7 +60,7 @@ class User(Base):
 session: Session
 
 query = session.query(User, User.id)
-reveal_type(query) # E: Revealed type is 'sqlalchemy.orm.query.Query[main.User, builtins.int*]'
+reveal_type(query) # E: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[main.User, builtins.int*]]'
 
 
 [case testQueryMethods]
