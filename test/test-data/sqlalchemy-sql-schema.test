@@ -8,11 +8,11 @@ e = create_engine('postgresql://foo')
 c = Connection(e)
 m.bind = 'postgresql://foo'
 m.bind = make_url('postgresql://foo')
-reveal_type(m.bind)  # E: Revealed type is 'Union[sqlalchemy.engine.base.Engine, sqlalchemy.engine.base.Connection, None]'
+reveal_type(m.bind)  # N: Revealed type is 'Union[sqlalchemy.engine.base.Engine, sqlalchemy.engine.base.Connection, None]'
 m.bind = e
-reveal_type(m.bind)  # E: Revealed type is 'sqlalchemy.engine.base.Engine'
+reveal_type(m.bind)  # N: Revealed type is 'sqlalchemy.engine.base.Engine'
 m.bind = c
-reveal_type(m.bind)  # E: Revealed type is 'sqlalchemy.engine.base.Connection'
+reveal_type(m.bind)  # N: Revealed type is 'sqlalchemy.engine.base.Connection'
 [out]
 
 [case testSequenceType]
@@ -33,8 +33,8 @@ class User(Base):
     name = Column(String)
 
 user: User
-reveal_type(user.id)  # E: Revealed type is 'builtins.int*'
-reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[Union[builtins.str*, None]]'
+reveal_type(user.id)  # N: Revealed type is 'builtins.int*'
+reveal_type(User.name)  # N: Revealed type is 'sqlalchemy.sql.schema.Column[Union[builtins.str, None]]'
 User.name.foo  # E: "Column[Optional[str]]" has no attribute "foo"
 User.name.ilike('hi')  # OK
 User.name.ilike(5)  # E: Argument 1 to "ilike" of "ColumnOperators" has incompatible type "int"; expected "str"
