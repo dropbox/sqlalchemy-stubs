@@ -13,9 +13,11 @@ from mypy.types import (
 )
 from mypy.typevars import fill_typevars_with_any
 
-from typing import Optional, Callable, Dict, TYPE_CHECKING, List, Type as TypingType, TypeVar
-if TYPE_CHECKING:
-    from typing_extensions import Final
+from typing import Optional, Callable, Dict, List, TypeVar
+
+MYPY = False  # we should support Python 3.5.1 + cases where typing_extensions is not available.
+if MYPY:
+    from typing_extensions import Final, Type as TypingType
 
 T = TypeVar('T')
 CB = Optional[Callable[[T], None]]
@@ -394,5 +396,5 @@ def parse_bool(expr: Expression) -> Optional[bool]:
     return None
 
 
-def plugin(version: str) -> TypingType[Plugin]:
+def plugin(version: str) -> 'TypingType[Plugin]':
     return BasicSQLAlchemyPlugin
