@@ -1,3 +1,5 @@
+-- These tests are also run on Python 3.5, so we can't use variable annotations in this file.
+
 [case testColumnFieldsInferred]
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
@@ -42,7 +44,7 @@ reveal_type(user.id)  # N: Revealed type is 'builtins.int*'
 reveal_type(User.name)  # N: Revealed type is 'sqlalchemy.sql.schema.Column[builtins.str*]'
 [out]
 
-[case testColumnFieldsRelationship]
+[case testColumnFieldsRelationshipTypeComment]
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Column, Integer, String
@@ -56,7 +58,7 @@ class User(Base):
     id = Column(Integer(), primary_key=True)
     name = Column(String())
     other = relationship('Other', uselist=False)
-    another: RelationshipProperty[Other] = relationship('Other')
+    another = relationship('Other')  # type: : RelationshipProperty[Other]
 
 user: User
 reveal_type(user.other)  # N: Revealed type is 'other.Other*'
