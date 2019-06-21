@@ -7,8 +7,8 @@ sudo: required
 
 jobs:
   include:
-  - name: "run test suite with python 3.5"
-    python: 3.5
+  - name: "run test suite with python 3.5.1"
+    python: 3.5.1
     script: |
       set -e
       pytest
