@@ -24,7 +24,7 @@ jobs:
       mkdir tmpd
       cp -r sqlalchemy-stubs tmpd/sqlalchemy
       cd tmpd
-      python3 -m mypy -p sqlalchemy
+      python3 -m mypy --new-semantic-analyzer -p sqlalchemy
   - name: "run flake8 on stubs"
     python: 3.6
     script: |
@@ -33,7 +33,7 @@ jobs:
     python: 3.6
     script: |
       set -e
-      MYPYPATH=external/mypy python3 -m mypy --disallow-untyped-defs sqlmypy.py
+      MYPYPATH=external/mypy python3 -m mypy --new-semantic-analyzer --disallow-untyped-defs sqlmypy.py
 
 
 before_install: |
