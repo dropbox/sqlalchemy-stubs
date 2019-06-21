@@ -8,6 +8,7 @@ sudo: required
 jobs:
   include:
   - name: "run basic tests with python 3.5.1"
+    dist: trusty
     python: 3.5.1
     script: |
       set -e
