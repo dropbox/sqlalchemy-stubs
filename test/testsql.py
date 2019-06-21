@@ -48,8 +48,11 @@ class SQLDataSuite(DataSuite):
                 return
             mypy_cmdline.append('--py2')
         else:
-            mypy_cmdline.append('--python-version={}'.format('.'.join(map(str,
-                                                                          sys.version_info[:2]))))
+            if sys.version_info[:2] == (3, 5):
+                version = (3, 6)  # Always accept variable annotations.
+            else:
+                version = sys.version_info[:2]
+            mypy_cmdline.append('--python-version={}'.format('.'.join(map(str, version))))
 
         # Write the program to a file.
         program_path = os.path.join(test_temp_dir, 'main.py')
