@@ -10,8 +10,8 @@ class User(Base):
     name = Column(String)
 
 user: User
-reveal_type(user.id)  # E: Revealed type is 'builtins.int*'
-reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[Union[builtins.str*, None]]'
+reveal_type(user.id)  # N: Revealed type is 'builtins.int*'
+reveal_type(User.name)  # N: Revealed type is 'sqlalchemy.sql.schema.Column[Union[builtins.str, None]]'
 [out]
 
 [case testTypeEngineCovariance]
@@ -22,7 +22,7 @@ from typing import TypeVar, Optional
 T = TypeVar('T', bound=int)
 
 def func(tp: TypeEngine[Optional[T]]) -> T: ...
-reveal_type(func(Integer()))  # E: Revealed type is 'builtins.int*'
+reveal_type(func(Integer()))  # N: Revealed type is 'builtins.int*'
 func(String())  # E: Value of type variable "T" of "func" cannot be "str"
 [out]
 
@@ -38,8 +38,8 @@ class User(Base):
     name = Column(String(), nullable=False)
 
 user: User
-reveal_type(user.id)  # E: Revealed type is 'builtins.int*'
-reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[builtins.str*]'
+reveal_type(user.id)  # N: Revealed type is 'builtins.int*'
+reveal_type(User.name)  # N: Revealed type is 'sqlalchemy.sql.schema.Column[builtins.str*]'
 [out]
 
 [case testColumnFieldsRelationship]
@@ -59,9 +59,9 @@ class User(Base):
     another: RelationshipProperty[Other] = relationship('Other')
 
 user: User
-reveal_type(user.other)  # E: Revealed type is 'other.Other*'
-reveal_type(User.other)  # E: Revealed type is 'sqlalchemy.orm.relationships.RelationshipProperty[other.Other*]'
-reveal_type(user.other.name)  # E: Revealed type is 'builtins.str*'
+reveal_type(user.other)  # N: Revealed type is 'other.Other*'
+reveal_type(User.other)  # N: Revealed type is 'sqlalchemy.orm.relationships.RelationshipProperty[other.Other*]'
+reveal_type(user.other.name)  # N: Revealed type is 'builtins.str*'
 
 [file other.py]
 from sqlalchemy import Column, Integer, String
@@ -86,7 +86,7 @@ users = Table('users', metadata,
               Column('id', Integer, primary_key=True),
               Column('name', String))
 
-reveal_type(users.c.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column*[Any]'
+reveal_type(users.c.name)  # N: Revealed type is 'sqlalchemy.sql.schema.Column*[Any]'
 [out]
 
 [case testColumnFieldsInferred_python2]
@@ -101,8 +101,8 @@ class User(Base):
     name = Column(String)
 
 user = User()
-reveal_type(user.id)  # E: Revealed type is 'builtins.int*'
-reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[Union[builtins.unicode*, None]]'
+reveal_type(user.id)  # N: Revealed type is 'builtins.int*'
+reveal_type(User.name)  # N: Revealed type is 'sqlalchemy.sql.schema.Column[Union[builtins.unicode, None]]'
 [out]
 
 [case testColumnFieldsInferredInstance_python2]
@@ -117,6 +117,6 @@ class User(Base):
     name = Column(String(), default='John Doe')
 
 user = User()
-reveal_type(user.id)  # E: Revealed type is 'builtins.int*'
-reveal_type(User.name)  # E: Revealed type is 'sqlalchemy.sql.schema.Column[builtins.unicode*]'
+reveal_type(user.id)  # N: Revealed type is 'builtins.int*'
+reveal_type(User.name)  # N: Revealed type is 'sqlalchemy.sql.schema.Column[builtins.unicode*]'
 [out]
