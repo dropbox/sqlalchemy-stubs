@@ -15,7 +15,7 @@ from mypy.typevars import fill_typevars_with_any
 
 from typing import Optional, Callable, Dict, List, TypeVar
 
-MYPY = False  # we should support Python 3.5.1 + cases where typing_extensions is not available.
+MYPY = False  # we should support Python 3.5.1 and cases where typing_extensions is not available.
 if MYPY:
     from typing_extensions import Final, Type as TypingType
 
@@ -67,17 +67,17 @@ class BasicSQLAlchemyPlugin(Plugin):
                 return model_hook
         return None
 
-    def get_dynamic_class_hook(self, fullname: str) -> CB[DynamicClassDefContext]:
+    def get_dynamic_class_hook(self, fullname: str) -> 'CB[DynamicClassDefContext]':
         if fullname == 'sqlalchemy.ext.declarative.api.declarative_base':
             return decl_info_hook
         return None
 
-    def get_class_decorator_hook(self, fullname: str) -> CB[ClassDefContext]:
+    def get_class_decorator_hook(self, fullname: str) -> 'CB[ClassDefContext]':
         if fullname == 'sqlalchemy.ext.declarative.api.as_declarative':
             return decl_deco_hook
         return None
 
-    def get_base_class_hook(self, fullname: str) -> CB[ClassDefContext]:
+    def get_base_class_hook(self, fullname: str) -> 'CB[ClassDefContext]':
         sym = self.lookup_fully_qualified(fullname)
         if sym and isinstance(sym.node, TypeInfo):
             if is_declarative(sym.node):

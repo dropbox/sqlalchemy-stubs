@@ -58,7 +58,7 @@ class User(Base):
     id = Column(Integer(), primary_key=True)
     name = Column(String())
     other = relationship('Other', uselist=False)
-    another = relationship('Other')  # type: : RelationshipProperty[Other]
+    another = relationship('Other')  # type: RelationshipProperty[Other]
 
 user: User
 reveal_type(user.other)  # N: Revealed type is 'other.Other*'
