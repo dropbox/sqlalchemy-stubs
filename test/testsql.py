@@ -21,13 +21,16 @@ test_data_prefix = os.path.join(prefix, 'test', 'test-data')
 
 
 class SQLDataSuite(DataSuite):
-    files = ['sqlalchemy-basics.test',
-             'sqlalchemy-functions.test',
-             'sqlalchemy-sql-elements.test',
-             'sqlalchemy-sql-sqltypes.test',
-             'sqlalchemy-sql-selectable.test',
-             'sqlalchemy-sql-schema.test',
-             'sqlalchemy-plugin-features.test']
+    if sys.version_info[:2] == (3, 5):
+        files = ['sqlalchemy-basics.test']
+    else:
+        files = ['sqlalchemy-basics.test',
+                 'sqlalchemy-functions.test',
+                 'sqlalchemy-sql-elements.test',
+                 'sqlalchemy-sql-sqltypes.test',
+                 'sqlalchemy-sql-selectable.test',
+                 'sqlalchemy-sql-schema.test',
+                 'sqlalchemy-plugin-features.test']
     data_prefix = test_data_prefix
 
     def run_case(self, testcase: DataDrivenTestCase) -> None:
@@ -45,8 +48,11 @@ class SQLDataSuite(DataSuite):
                 return
             mypy_cmdline.append('--py2')
         else:
-            mypy_cmdline.append('--python-version={}'.format('.'.join(map(str,
-                                                                          sys.version_info[:2]))))
+            if sys.version_info[:2] == (3, 5):
+                version = (3, 6)  # Always accept variable annotations.
+            else:
+                version = sys.version_info[:2]
+            mypy_cmdline.append('--python-version={}'.format('.'.join(map(str, version))))
 
         # Write the program to a file.
         program_path = os.path.join(test_temp_dir, 'main.py')

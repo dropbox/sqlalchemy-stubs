@@ -7,6 +7,12 @@ sudo: required
 
 jobs:
   include:
+  - name: "run basic tests with python 3.5.1"
+    dist: trusty
+    python: 3.5.1
+    script: |
+      set -e
+      pytest
   - name: "run test suite with python 3.6"
     python: 3.6
     script: |
@@ -18,7 +24,7 @@ jobs:
       set -e
       pytest
   - name: "run typecheck on stubs"
-    python: 3.6
+    python: 3.7
     script: |
       set -e
       mkdir tmpd
@@ -26,11 +32,11 @@ jobs:
       cd tmpd
       python3 -m mypy --new-semantic-analyzer -p sqlalchemy
   - name: "run flake8 on stubs"
-    python: 3.6
+    python: 3.7
     script: |
       flake8 sqlalchemy-stubs
   - name: "run typecheck on plugin"
-    python: 3.6
+    python: 3.7
     script: |
       set -e
       MYPYPATH=external/mypy python3 -m mypy --config-file external/mypy/mypy_self_check.ini sqlmypy.py
