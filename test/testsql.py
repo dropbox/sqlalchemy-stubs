@@ -22,6 +22,7 @@ test_data_prefix = os.path.join(prefix, 'test', 'test-data')
 
 class SQLDataSuite(DataSuite):
     files = ['sqlalchemy-basics.test',
+             'sqlalchemy-functions.test',
              'sqlalchemy-sql-elements.test',
              'sqlalchemy-sql-sqltypes.test',
              'sqlalchemy-sql-selectable.test',
