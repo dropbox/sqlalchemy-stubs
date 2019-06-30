@@ -42,7 +42,7 @@ def find_stub_files():
 
 
 setup(name='sqlalchemy-stubs',
-      version='0.1',
+      version='0.2',
       description=description,
       long_description=install_instructions,
       long_description_content_type='text/markdown',

@@ -1,0 +1,18 @@
+[case testConcatFunctionBareString]
+from sqlalchemy.sql import functions
+
+from sqlalchemy import Column, Table
+from sqlalchemy.types import Integer, String
+from sqlalchemy import MetaData
+
+metadata = MetaData()
+
+users_table = Table(
+    "users",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("user", String(42), unique=True, nullable=False),
+)
+
+query = users_table.update().values(user=functions.concat(users_table.c.user, "@domain.com"))
+[out]
