@@ -109,3 +109,40 @@ reveal_type(row.keys())  # E: Revealed type is 'builtins.list[builtins.str]'
 
 x = row.allow_attribute_access
 reveal_type(x)  # E: Revealed type is 'Any'
+
+[case alwaysTupleForNonEntities]
+# flags: --strict-optional
+
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session, Query
+
+Base = declarative_base()
+
+class User(Base):
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+
+
+session: Session
+query = session.query(User.id)
+reveal_type(query)  # E: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[builtins.int*, fallback=sqlalchemy.util._collections.AbstractKeyedTuple[Any]]]'
+
+
+[case unsupportedStuffGeneratesAny]
+# flags: --strict-optional
+
+from sqlalchemy import Column, Integer, String, func
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session, Query
+
+Base = declarative_base()
+
+class User(Base):
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+
+
+session: Session
+query = session.query(func.count(User.id))
+reveal_type(query)  # E: Revealed type is 'sqlalchemy.orm.query.Query[Any]'
