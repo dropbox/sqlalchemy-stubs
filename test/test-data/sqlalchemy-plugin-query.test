@@ -15,7 +15,7 @@ class User(Base):
 session: Session
 
 query = session.query(User)
-reveal_type(query) # E: Revealed type is 'sqlalchemy.orm.query.Query[main.User]'
+reveal_type(query) # N: Revealed type is 'sqlalchemy.orm.query.Query[main.User]'
 
 
 [case queryFromMultipleModels]
@@ -41,7 +41,7 @@ class LoginInfo(Base):
 
 session: Session
 query = session.query(Employee, LoginInfo)
-reveal_type(query)  # E: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[main.Employee, main.LoginInfo, fallback=sqlalchemy.util._collections.AbstractKeyedTuple[Any]]]'
+reveal_type(query)  # N: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[main.Employee, main.LoginInfo, fallback=sqlalchemy.util._collections.AbstractKeyedTuple[Any]]]'
 
 [case queryFromModelAndColumn]
 # flags: --strict-optional
@@ -60,7 +60,7 @@ class User(Base):
 session: Session
 
 query = session.query(User, User.id)
-reveal_type(query) # E: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[main.User, builtins.int*, fallback=sqlalchemy.util._collections.AbstractKeyedTuple[Any]]]'
+reveal_type(query) # N: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[main.User, builtins.int*, fallback=sqlalchemy.util._collections.AbstractKeyedTuple[Any]]]'
 
 
 [case testQueryMethods]
@@ -78,9 +78,9 @@ class User(Base):
 
 
 query: Query[User]
-reveal_type(query.get(123)) # E: Revealed type is 'Union[main.User*, None]'
-reveal_type(query.all()) # E: Revealed type is 'builtins.list[main.User*]'
-reveal_type(iter(query)) # E: Revealed type is 'typing.Iterator[main.User*]'
+reveal_type(query.get(123)) # N: Revealed type is 'Union[main.User*, None]'
+reveal_type(query.all()) # N: Revealed type is 'builtins.list[main.User*]'
+reveal_type(iter(query)) # N: Revealed type is 'typing.Iterator[main.User*]'
 
 [case usesAbstractKeyedTuple]
 # flags: --strict-optional
@@ -98,17 +98,17 @@ class User(Base):
 
 session: Session
 query = session.query(User.id, User.name)
-reveal_type(query)  # E: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[builtins.int*, builtins.str*, fallback=sqlalchemy.util._collections.AbstractKeyedTuple[Any]]]'
+reveal_type(query)  # N: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[builtins.int*, builtins.str*, fallback=sqlalchemy.util._collections.AbstractKeyedTuple[Any]]]'
 row = query.one()
 
 col1, col2 = row
-reveal_type(col1)  # E: Revealed type is 'builtins.int*'
-reveal_type(col2)  # E: Revealed type is 'builtins.str*'
+reveal_type(col1)  # N: Revealed type is 'builtins.int*'
+reveal_type(col2)  # N: Revealed type is 'builtins.str*'
 
-reveal_type(row.keys())  # E: Revealed type is 'builtins.list[builtins.str]'
+reveal_type(row.keys())  # N: Revealed type is 'builtins.list[builtins.str]'
 
 x = row.allow_attribute_access
-reveal_type(x)  # E: Revealed type is 'Any'
+reveal_type(x)  # N: Revealed type is 'Any'
 
 [case alwaysTupleForNonEntities]
 # flags: --strict-optional
@@ -126,7 +126,7 @@ class User(Base):
 
 session: Session
 query = session.query(User.id)
-reveal_type(query)  # E: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[builtins.int*, fallback=sqlalchemy.util._collections.AbstractKeyedTuple[Any]]]'
+reveal_type(query)  # N: Revealed type is 'sqlalchemy.orm.query.Query[Tuple[builtins.int*, fallback=sqlalchemy.util._collections.AbstractKeyedTuple[Any]]]'
 
 
 [case unsupportedStuffGeneratesAny]
@@ -145,4 +145,4 @@ class User(Base):
 
 session: Session
 query = session.query(func.count(User.id))
-reveal_type(query)  # E: Revealed type is 'sqlalchemy.orm.query.Query[Any]'
+reveal_type(query)  # N: Revealed type is 'sqlalchemy.orm.query.Query[Any]'
