@@ -434,10 +434,10 @@ def session_query_hook(ctx: MethodContext) -> Type:
         # or when we can't detect what the single argument is (Any)
         final_arg = args[0]
     else:
-        fallback = ctx.api.named_type('sqlalchemy.util._collections.AbstractKeyedTuple')
+        fallback = ctx.api.named_type('sqlalchemy.util._collections.AbstractKeyedTuple')  # type: ignore
         final_arg = TupleType(args, fallback, implicit=True)
 
-    return ctx.default_return_type.copy_modified(args=[final_arg])
+    return ctx.api.named_generic_type("sqlalchemy.orm.Query", [final_arg])
 
 
 # We really need to add this to TypeChecker API
