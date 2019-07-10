@@ -50,6 +50,47 @@ class Base:
     ...
 [out]
 
+[case testModelInitMixin]
+
+from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+class HasId:
+    id = Column(Integer, primary_key=True)
+
+class User(Base, HasId):
+    __tablename__ = 'users'
+
+    name = Column(String, nullable=False)
+
+user = User(id=123, name="John Doe")
+reveal_type(user.id)  # N: Revealed type is 'builtins.int*'
+[out]
+
+[case testModelInitProperMro]
+
+from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+class Defaults:
+    id = Column(Integer, primary_key=True)
+
+class User(Base, Defaults):
+    __tablename__ = 'users'
+
+    # By default mypy will complain about Column[str] not being compatible with Column[int].
+    # Adding "ignore" should allow us to override column type.
+    id = Column(String, primary_key=True)  # type: ignore
+    name = Column(String, nullable=False)
+
+User(id='stringish-id')
+User(id=123)  # E: Incompatible type for "id" of "User" (got "int", expected "str")
+[out]
+
 [case testModelInitRelationship]
 from typing import TYPE_CHECKING, List
 
