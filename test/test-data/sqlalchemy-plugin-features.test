@@ -66,7 +66,7 @@ class User(Base, HasId):
     name = Column(String, nullable=False)
 
 user = User(id=123, name="John Doe")
-reveal_type(user.id)  # N: Revealed type is 'builtins.int'
+reveal_type(user.id)  # N: Revealed type is 'builtins.int*'
 [out]
 
 [case testModelInitProperMro]
