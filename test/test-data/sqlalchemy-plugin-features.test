@@ -60,15 +60,13 @@ Base = declarative_base()
 class HasId:
     id = Column(Integer, primary_key=True)
 
-
 class User(Base, HasId):
     __tablename__ = 'users'
 
     name = Column(String, nullable=False)
 
-
 user = User(id=123, name="John Doe")
-
+reveal_type(user.id)  # N: Revealed type is 'builtins.int'
 [out]
 
 [case testModelInitProperMro]
@@ -81,7 +79,6 @@ Base = declarative_base()
 class Defaults:
     id = Column(Integer, primary_key=True)
 
-
 class User(Base, Defaults):
     __tablename__ = 'users'
 
@@ -90,12 +87,9 @@ class User(Base, Defaults):
     id = Column(String, primary_key=True)  # type: ignore
     name = Column(String, nullable=False)
 
-
 User(id='stringish-id')
-User(id=123)
-
+User(id=123)  # E: Incompatible type for "id" of "User" (got "int", expected "str")
 [out]
-main:21: error: Incompatible type for "id" of "User" (got "int", expected "str")
 
 [case testModelInitRelationship]
 from typing import TYPE_CHECKING, List
