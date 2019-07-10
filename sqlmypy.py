@@ -199,7 +199,7 @@ def model_hook(ctx: FunctionContext) -> Type:
           argument types is 'Any'.
     """
     assert isinstance(ctx.default_return_type, Instance)
-    model: TypeInfo = ctx.default_return_type.type
+    model = ctx.default_return_type.type
     metadata = model.metadata.get('sqlalchemy')
     if not metadata or not metadata.get('generated_init'):
         return ctx.default_return_type
