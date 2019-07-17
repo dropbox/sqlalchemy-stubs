@@ -3,6 +3,7 @@
 import os
 import os.path
 import sys
+import re
 
 import pytest  # type: ignore  # no pytest in typeshed
 
@@ -53,6 +54,12 @@ class SQLDataSuite(DataSuite):
             else:
                 version = sys.version_info[:2]
             mypy_cmdline.append('--python-version={}'.format('.'.join(map(str, version))))
+
+        program_text = '\n'.join(testcase.input)
+        flags = re.search('# flags: (.*)$', program_text, flags=re.MULTILINE)
+        if flags:
+            flag_list = flags.group(1).split()
+            mypy_cmdline.extend(flag_list)
 
         # Write the program to a file.
         program_path = os.path.join(test_temp_dir, 'main.py')

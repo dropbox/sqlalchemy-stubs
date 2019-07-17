@@ -120,3 +120,26 @@ user = User()
 reveal_type(user.id)  # N: Revealed type is 'builtins.int*'
 reveal_type(User.name)  # N: Revealed type is 'sqlalchemy.sql.schema.Column[builtins.unicode*]'
 [out]
+
+[case testRelationshipStrictEquality]
+# flags: --strict-equality
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Session
+
+Base = declarative_base()
+session = Session()
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer(), primary_key=True)
+    other = relationship('Other')
+
+class Other(Base):
+    __tablename__ = 'other'
+    id = Column(Integer(), primary_key=True)
+
+other: Other
+session.query(User).filter(User.other == other)
+[out]
