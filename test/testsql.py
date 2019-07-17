@@ -58,8 +58,7 @@ class SQLDataSuite(DataSuite):
         program_text = '\n'.join(testcase.input)
         flags = re.search('# flags: (.*)$', program_text, flags=re.MULTILINE)
         if flags:
-            if flags:
-                flag_list = flags.group(1).split()
+            flag_list = flags.group(1).split()
             mypy_cmdline.extend(flag_list)
 
         # Write the program to a file.
