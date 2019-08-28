@@ -60,3 +60,17 @@ class Mytable(Base):
     __tablename__ = 'mytable'
     objid = Column(ForeignKey('othertable.objid'), index=True)
 [out]
+
+[case testTableWithIndexes]
+from sqlalchemy import Column, Table, String, Integer, Index, MetaData, text, func
+metadata = MetaData()
+name_col = Column('name', String)
+test_table = Table('test', metadata,
+    Column('id', Integer, primary_key=True),
+    name_col,
+    Index('idx1', 'id', 'name'),
+    Index('idx1', 'id', name_col),
+    Index('idx1', 'id', func.lower(name_col)),
+    Index('idx1', 'id', text("lower(name)")),
+)
+[out]
