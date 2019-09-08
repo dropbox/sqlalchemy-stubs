@@ -1,0 +1,21 @@
+[case testSelectableSelect]
+from sqlalchemy import Boolean, Column, Enum, MetaData, Numeric, Table
+
+metadata = MetaData()
+
+e_item = Table(
+  'e1_item', metadata,
+	Column('enum', Enum('A', 'B', name='blah')),
+	Column('bool', Boolean),
+	Column('number', Numeric(10, asdecimal=False))
+)
+[out]
+
+[case testCreateTableIterables]
+from sqlalchemy import Boolean, Column, Enum, MetaData, Numeric, Table 
+
+t = table('user', column('id'), column('name'), column('description'), column('articles'))
+st = table('stuff', column('id'))
+a = alias(t, 'my_user')
+c = create(columns={column('id'), column('name'), a}
+

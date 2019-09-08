@@ -28,6 +28,7 @@ class SQLDataSuite(DataSuite):
         files = ['sqlalchemy-basics.test',
                  'sqlalchemy-functions.test',
                  'sqlalchemy-sql-elements.test',
+                 'sqlalchemy-sql-createtable.test',
                  'sqlalchemy-sql-sqltypes.test',
                  'sqlalchemy-sql-selectable.test',
                  'sqlalchemy-sql-schema.test',
