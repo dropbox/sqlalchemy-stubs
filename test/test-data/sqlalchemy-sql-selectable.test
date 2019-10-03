@@ -68,3 +68,11 @@ t = table('user', column('id'), column('name'), column('description'), column('a
 st = table('stuff', column('id'))
 st.outerjoin(t, onclause=and_(st.c.id == t.c.id, t.c.name == t.c.description))
 [out]
+
+[case testSelectableSelectWithForUpdateOfTable]
+from sqlalchemy import table, select, column, alias, func
+
+t1 = table('user', column('id'), column('name'), column('description'), column('articles'))
+t2 = table('stuff', column('id'))
+t1.join(t2).select().with_for_update(of=t1)
+[out]
