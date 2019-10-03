@@ -1,4 +1,7 @@
-from typing import Any, Optional
+from typing import Any, Optional, Union
+from sqlalchemy.sql.expression import ClauseElement
+from sqlalchemy.sql.functions import FunctionElement
+from sqlalchemy.schema import DDLElement, DefaultGenerator
 from .base import Connection
 from .result import ResultProxy
 from ..sql.compiler import Compiled as Compiled, TypeCompiler as TypeCompiler
@@ -77,7 +80,10 @@ class Connectable(object):
     def contextual_connect(self) -> Connection: ...
     def create(self, entity, **kwargs): ...
     def drop(self, entity, **kwargs): ...
-    def execute(self, object, *multiparams: Any, **params: Any) -> ResultProxy: ...
+    def execute(self,
+                object: Union[str, ClauseElement, FunctionElement, DDLElement, DefaultGenerator, Compiled],
+                *multiparams: Any,
+                **params: Any) -> ResultProxy: ...
     def scalar(self, object, *multiparams: Any, **params: Any) -> Any: ...
 
 class ExceptionContext(object):
