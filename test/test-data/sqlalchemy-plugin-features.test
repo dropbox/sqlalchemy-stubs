@@ -321,3 +321,93 @@ class M2(M1):
 Base = declarative_base(cls=(M1, M2))  # E: Not able to calculate MRO for declarative base
 reveal_type(Base)  # N: Revealed type is 'Any'
 [out]
+
+[case testRelationshipIsGuessed]
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+class Parent(Base):
+    __tablename__ = 'parents'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+    children = relationship("Child")
+
+class Child(Base):
+    __tablename__ = 'children'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    parent_id = Column(Integer, ForeignKey(Parent.id))
+
+    parent = relationship(Parent)
+
+child: Child
+parent: Parent
+
+reveal_type(child.parent)  # E: Revealed type is 'main.Parent*'
+reveal_type(parent.children)  # E: Revealed type is 'typing.Iterable*[main.Child]'
+
+[out]
+
+[case testRelationshipIsGuessed2]
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+class Parent(Base):
+    __tablename__ = 'parents'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+    children = relationship("Child")
+
+class Child(Base):
+    __tablename__ = 'children'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    parent_id = Column(Integer, ForeignKey("parents.id"))
+
+    parent = relationship(Parent)
+
+child: Child
+parent: Parent
+
+reveal_type(child.parent)  # E: Revealed type is 'main.Parent*'
+reveal_type(parent.children)  # E: Revealed type is 'typing.Iterable*[main.Child]'
+
+[out]
+
+[case testRelationshipIsGuessed3]
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+class Parent(Base):
+    __tablename__ = 'parents'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+
+    children = relationship("Child")
+
+class Child(Base):
+    __tablename__ = 'children'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    parent_id = Column(Integer, ForeignKey("other_parents.id"))
+
+    parent = relationship(Parent)
+
+child: Child
+parent: Parent
+
+reveal_type(child.parent)  # E: Revealed type is 'main.Parent*'
+reveal_type(parent.children)  # E: Revealed type is 'main.Child*'
+
+[out]
