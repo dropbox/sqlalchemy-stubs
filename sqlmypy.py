@@ -6,14 +6,19 @@ from mypy.plugin import (
 from mypy.plugins.common import add_method
 from mypy.nodes import (
     NameExpr, Expression, StrExpr, TypeInfo, ClassDef, Block, SymbolTable, SymbolTableNode, GDEF,
-    Argument, Var, ARG_STAR2, MDEF, TupleExpr, RefExpr
+    Argument, Var, ARG_STAR2, MDEF, TupleExpr, RefExpr, FuncBase, SymbolNode
 )
 from mypy.types import (
     UnionType, NoneTyp, Instance, Type, AnyType, TypeOfAny, UninhabitedType, CallableType
 )
 from mypy.typevars import fill_typevars_with_any
 
-from typing import Optional, Callable, Dict, List, TypeVar
+try:
+    from mypy.types import get_proper_type
+except ImportError:
+    get_proper_type = lambda x: x
+
+from typing import Optional, Callable, Dict, List, TypeVar, Union
 
 MYPY = False  # we should support Python 3.5.1 and cases where typing_extensions is not available.
 if MYPY:
@@ -27,6 +32,24 @@ CLAUSE_ELEMENT_NAME = 'sqlalchemy.sql.elements.ClauseElement'  # type: Final
 COLUMN_ELEMENT_NAME = 'sqlalchemy.sql.elements.ColumnElement'  # type: Final
 GROUPING_NAME = 'sqlalchemy.sql.elements.Grouping'  # type: Final
 RELATIONSHIP_NAME = 'sqlalchemy.orm.relationships.RelationshipProperty'  # type: Final
+
+
+# See https://github.com/python/mypy/issues/6617 for plugin API updates.
+
+def fullname(x: Union[FuncBase, SymbolNode]) -> str:
+    """Compatibility helper for mypy 0.750 vs older."""
+    fn = x.fullname
+    if callable(fn):
+        return fn()
+    return fn
+
+
+def shortname(x: Union[FuncBase, SymbolNode]) -> str:
+    """Compatibility helper for mypy 0.750 vs older."""
+    fn = x.name
+    if callable(fn):
+        return fn()
+    return fn
 
 
 def is_declarative(info: TypeInfo) -> bool:
@@ -92,7 +115,7 @@ def add_var_to_class(name: str, typ: Type, info: TypeInfo) -> None:
     """
     var = Var(name)
     var.info = info
-    var._fullname = info.fullname() + '.' + name
+    var._fullname = fullname(info) + '.' + name
     var.type = typ
     info.names[name] = SymbolTableNode(MDEF, var)
 
@@ -200,7 +223,7 @@ def model_hook(ctx: FunctionContext) -> Type:
     Note: this is still not perfect, since the context for inference of
           argument types is 'Any'.
     """
-    assert isinstance(ctx.default_return_type, Instance)
+    assert isinstance(ctx.default_return_type, Instance)  # type: ignore[misc]
     model = ctx.default_return_type.type
     metadata = model.metadata.get('sqlalchemy')
     if not metadata or not metadata.get('generated_init'):
@@ -211,11 +234,12 @@ def model_hook(ctx: FunctionContext) -> Type:
     expected_types = {}  # type: Dict[str, Type]
     for cls in model.mro[::-1]:
         for name, sym in cls.names.items():
-            if isinstance(sym.node, Var) and isinstance(sym.node.type, Instance):
-                tp = sym.node.type
-                if tp.type.fullname() in (COLUMN_NAME, RELATIONSHIP_NAME):
-                    assert len(tp.args) == 1
-                    expected_types[name] = tp.args[0]
+            if isinstance(sym.node, Var):
+                tp = get_proper_type(sym.node.type)
+                if isinstance(tp, Instance):
+                    if fullname(tp.type) in (COLUMN_NAME, RELATIONSHIP_NAME):
+                        assert len(tp.args) == 1
+                        expected_types[name] = tp.args[0]
 
     assert len(ctx.arg_names) == 1  # only **kwargs in generated __init__
     assert len(ctx.arg_types) == 1
@@ -226,14 +250,14 @@ def model_hook(ctx: FunctionContext) -> Type:
             continue
         if actual_name not in expected_types:
             ctx.api.fail('Unexpected column "{}" for model "{}"'.format(actual_name,
-                                                                        model.name()),
+                                                                        shortname(model)),
                          ctx.context)
             continue
         # Using private API to simplify life.
         ctx.api.check_subtype(actual_type, expected_types[actual_name],  # type: ignore
                               ctx.context,
                               'Incompatible type for "{}" of "{}"'.format(actual_name,
-                                                                          model.name()),
+                                                                          shortname(model)),
                               'got', 'expected')
     return ctx.default_return_type
 
@@ -277,7 +301,7 @@ def column_hook(ctx: FunctionContext) -> Type:
 
     TODO: check the type of 'default'.
     """
-    assert isinstance(ctx.default_return_type, Instance)
+    assert isinstance(ctx.default_return_type, Instance)  # type: ignore[misc]
 
     nullable_arg = get_argument_by_name(ctx, 'nullable')
     primary_arg = get_argument_by_name(ctx, 'primary_key')
@@ -309,13 +333,13 @@ def grouping_hook(ctx: FunctionContext) -> Type:
         Grouping(Column(String), nullable=False) -> Grouping[str]
         Grouping(Column(String)) -> Grouping[Optional[str]]
     """
-    assert isinstance(ctx.default_return_type, Instance)
+    assert isinstance(ctx.default_return_type, Instance)  # type: ignore[misc]
 
-    element_arg_type = get_argtype_by_name(ctx, 'element')
+    element_arg_type = get_proper_type(get_argtype_by_name(ctx, 'element'))
 
     if element_arg_type is not None and isinstance(element_arg_type, Instance):
-        if element_arg_type.type.has_base(CLAUSE_ELEMENT_NAME) and not \
-                element_arg_type.type.has_base(COLUMN_ELEMENT_NAME):
+        if (element_arg_type.type.has_base(CLAUSE_ELEMENT_NAME) and not
+                element_arg_type.type.has_base(COLUMN_ELEMENT_NAME)):
             return ctx.default_return_type.copy_modified(args=[NoneTyp()])
     return ctx.default_return_type
 
@@ -339,12 +363,12 @@ def relationship_hook(ctx: FunctionContext) -> Type:
     This also tries to infer the type argument for 'RelationshipProperty'
     using the 'uselist' flag.
     """
-    assert isinstance(ctx.default_return_type, Instance)
+    assert isinstance(ctx.default_return_type, Instance)  # type: ignore[misc]
     original_type_arg = ctx.default_return_type.args[0]
-    has_annotation = not isinstance(original_type_arg, UninhabitedType)
+    has_annotation = not isinstance(get_proper_type(original_type_arg), UninhabitedType)
 
     arg = get_argument_by_name(ctx, 'argument')
-    arg_type = get_argtype_by_name(ctx, 'argument')
+    arg_type = get_proper_type(get_argtype_by_name(ctx, 'argument'))
 
     uselist_arg = get_argument_by_name(ctx, 'uselist')
 
