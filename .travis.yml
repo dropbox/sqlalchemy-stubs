@@ -30,7 +30,7 @@ jobs:
       mkdir tmpd
       cp -r sqlalchemy-stubs tmpd/sqlalchemy
       cd tmpd
-      python3 -m mypy --new-semantic-analyzer -p sqlalchemy
+      python3 -m mypy -p sqlalchemy
   - name: "run flake8 on stubs"
     python: 3.7
     script: |

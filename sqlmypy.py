@@ -16,7 +16,7 @@ from mypy.typevars import fill_typevars_with_any
 try:
     from mypy.types import get_proper_type
 except ImportError:
-    get_proper_type = lambda x: x  # type: ignore
+    get_proper_type = lambda x: x
 
 from typing import Optional, Callable, Dict, List, TypeVar, Union
 
@@ -223,7 +223,7 @@ def model_hook(ctx: FunctionContext) -> Type:
     Note: this is still not perfect, since the context for inference of
           argument types is 'Any'.
     """
-    assert isinstance(ctx.default_return_type, Instance)
+    assert isinstance(ctx.default_return_type, Instance)  # type: ignore[misc]
     model = ctx.default_return_type.type
     metadata = model.metadata.get('sqlalchemy')
     if not metadata or not metadata.get('generated_init'):
@@ -301,7 +301,7 @@ def column_hook(ctx: FunctionContext) -> Type:
 
     TODO: check the type of 'default'.
     """
-    assert isinstance(ctx.default_return_type, Instance)
+    assert isinstance(ctx.default_return_type, Instance)  # type: ignore[misc]
 
     nullable_arg = get_argument_by_name(ctx, 'nullable')
     primary_arg = get_argument_by_name(ctx, 'primary_key')
@@ -333,7 +333,7 @@ def grouping_hook(ctx: FunctionContext) -> Type:
         Grouping(Column(String), nullable=False) -> Grouping[str]
         Grouping(Column(String)) -> Grouping[Optional[str]]
     """
-    assert isinstance(ctx.default_return_type, Instance)
+    assert isinstance(ctx.default_return_type, Instance)  # type: ignore[misc]
 
     element_arg_type = get_proper_type(get_argtype_by_name(ctx, 'element'))
 
@@ -363,7 +363,7 @@ def relationship_hook(ctx: FunctionContext) -> Type:
     This also tries to infer the type argument for 'RelationshipProperty'
     using the 'uselist' flag.
     """
-    assert isinstance(ctx.default_return_type, Instance)
+    assert isinstance(ctx.default_return_type, Instance)  # type: ignore[misc]
     original_type_arg = ctx.default_return_type.args[0]
     has_annotation = not isinstance(get_proper_type(original_type_arg), UninhabitedType)
 
