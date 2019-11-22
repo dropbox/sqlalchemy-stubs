@@ -143,3 +143,24 @@ class Other(Base):
 other: Other
 session.query(User).filter(User.other == other)
 [out]
+
+[case testColumnFieldsDeclaredAliases]
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+
+Base = declarative_base()
+
+CI = Column[int]
+CS = Column[str]
+
+class User(Base):
+    id: CI
+    name: CS
+
+user: User
+reveal_type(user.id)  # N: Revealed type is 'builtins.int*'
+reveal_type(User.name)  # N: Revealed type is 'sqlalchemy.sql.schema.Column[builtins.str*]'
+User(id=1)
+User(id='no')  # E: Incompatible type for "id" of "User" (got "str", expected "int")
+User(undefined=0)  # E: Unexpected column "undefined" for model "User"
+[out]

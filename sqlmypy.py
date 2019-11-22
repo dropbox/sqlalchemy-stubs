@@ -13,6 +13,11 @@ from mypy.types import (
 )
 from mypy.typevars import fill_typevars_with_any
 
+try:
+    from mypy.types import get_proper_type
+except ImportError:
+    get_proper_type = lambda x: x  # type: ignore
+
 from typing import Optional, Callable, Dict, List, TypeVar, Union
 
 MYPY = False  # we should support Python 3.5.1 and cases where typing_extensions is not available.
@@ -229,11 +234,12 @@ def model_hook(ctx: FunctionContext) -> Type:
     expected_types = {}  # type: Dict[str, Type]
     for cls in model.mro[::-1]:
         for name, sym in cls.names.items():
-            if isinstance(sym.node, Var) and isinstance(sym.node.type, Instance):
-                tp = sym.node.type
-                if fullname(tp.type) in (COLUMN_NAME, RELATIONSHIP_NAME):
-                    assert len(tp.args) == 1
-                    expected_types[name] = tp.args[0]
+            if isinstance(sym.node, Var):
+                tp = get_proper_type(sym.node.type)
+                if isinstance(tp, Instance):
+                    if fullname(tp.type) in (COLUMN_NAME, RELATIONSHIP_NAME):
+                        assert len(tp.args) == 1
+                        expected_types[name] = tp.args[0]
 
     assert len(ctx.arg_names) == 1  # only **kwargs in generated __init__
     assert len(ctx.arg_types) == 1
@@ -329,11 +335,11 @@ def grouping_hook(ctx: FunctionContext) -> Type:
     """
     assert isinstance(ctx.default_return_type, Instance)
 
-    element_arg_type = get_argtype_by_name(ctx, 'element')
+    element_arg_type = get_proper_type(get_argtype_by_name(ctx, 'element'))
 
     if element_arg_type is not None and isinstance(element_arg_type, Instance):
-        if element_arg_type.type.has_base(CLAUSE_ELEMENT_NAME) and not \
-                element_arg_type.type.has_base(COLUMN_ELEMENT_NAME):
+        if (element_arg_type.type.has_base(CLAUSE_ELEMENT_NAME) and not
+                element_arg_type.type.has_base(COLUMN_ELEMENT_NAME)):
             return ctx.default_return_type.copy_modified(args=[NoneTyp()])
     return ctx.default_return_type
 
@@ -359,10 +365,10 @@ def relationship_hook(ctx: FunctionContext) -> Type:
     """
     assert isinstance(ctx.default_return_type, Instance)
     original_type_arg = ctx.default_return_type.args[0]
-    has_annotation = not isinstance(original_type_arg, UninhabitedType)
+    has_annotation = not isinstance(get_proper_type(original_type_arg), UninhabitedType)
 
     arg = get_argument_by_name(ctx, 'argument')
-    arg_type = get_argtype_by_name(ctx, 'argument')
+    arg_type = get_proper_type(get_argtype_by_name(ctx, 'argument'))
 
     uselist_arg = get_argument_by_name(ctx, 'uselist')
 
