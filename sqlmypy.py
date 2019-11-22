@@ -6,14 +6,14 @@ from mypy.plugin import (
 from mypy.plugins.common import add_method
 from mypy.nodes import (
     NameExpr, Expression, StrExpr, TypeInfo, ClassDef, Block, SymbolTable, SymbolTableNode, GDEF,
-    Argument, Var, ARG_STAR2, MDEF, TupleExpr, RefExpr
+    Argument, Var, ARG_STAR2, MDEF, TupleExpr, RefExpr, FuncBase, SymbolNode
 )
 from mypy.types import (
     UnionType, NoneTyp, Instance, Type, AnyType, TypeOfAny, UninhabitedType, CallableType
 )
 from mypy.typevars import fill_typevars_with_any
 
-from typing import Optional, Callable, Dict, List, TypeVar
+from typing import Optional, Callable, Dict, List, TypeVar, Union
 
 MYPY = False  # we should support Python 3.5.1 and cases where typing_extensions is not available.
 if MYPY:
@@ -27,6 +27,24 @@ CLAUSE_ELEMENT_NAME = 'sqlalchemy.sql.elements.ClauseElement'  # type: Final
 COLUMN_ELEMENT_NAME = 'sqlalchemy.sql.elements.ColumnElement'  # type: Final
 GROUPING_NAME = 'sqlalchemy.sql.elements.Grouping'  # type: Final
 RELATIONSHIP_NAME = 'sqlalchemy.orm.relationships.RelationshipProperty'  # type: Final
+
+
+# See https://github.com/python/mypy/issues/6617 for plugin API updates.
+
+def fullname(x: Union[FuncBase, SymbolNode]) -> str:
+    """Compatibility helper for mypy 0.750 vs older."""
+    fn = x.fullname
+    if callable(fn):
+        return fn()
+    return fn
+
+
+def shortname(x: Union[FuncBase, SymbolNode]) -> str:
+    """Compatibility helper for mypy 0.750 vs older."""
+    fn = x.name
+    if callable(fn):
+        return fn()
+    return fn
 
 
 def is_declarative(info: TypeInfo) -> bool:
@@ -92,7 +110,7 @@ def add_var_to_class(name: str, typ: Type, info: TypeInfo) -> None:
     """
     var = Var(name)
     var.info = info
-    var._fullname = info.fullname() + '.' + name
+    var._fullname = fullname(info) + '.' + name
     var.type = typ
     info.names[name] = SymbolTableNode(MDEF, var)
 
@@ -213,7 +231,7 @@ def model_hook(ctx: FunctionContext) -> Type:
         for name, sym in cls.names.items():
             if isinstance(sym.node, Var) and isinstance(sym.node.type, Instance):
                 tp = sym.node.type
-                if tp.type.fullname() in (COLUMN_NAME, RELATIONSHIP_NAME):
+                if fullname(tp.type) in (COLUMN_NAME, RELATIONSHIP_NAME):
                     assert len(tp.args) == 1
                     expected_types[name] = tp.args[0]
 
@@ -226,14 +244,14 @@ def model_hook(ctx: FunctionContext) -> Type:
             continue
         if actual_name not in expected_types:
             ctx.api.fail('Unexpected column "{}" for model "{}"'.format(actual_name,
-                                                                        model.name()),
+                                                                        shortname(model)),
                          ctx.context)
             continue
         # Using private API to simplify life.
         ctx.api.check_subtype(actual_type, expected_types[actual_name],  # type: ignore
                               ctx.context,
                               'Incompatible type for "{}" of "{}"'.format(actual_name,
-                                                                          model.name()),
+                                                                          shortname(model)),
                               'got', 'expected')
     return ctx.default_return_type
 

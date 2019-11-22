@@ -40,6 +40,7 @@ class SQLDataSuite(DataSuite):
         mypy_cmdline = [
             '--show-traceback',
             '--no-silence-site-packages',
+            '--no-error-summary',
             '--config-file={}/sqlalchemy.ini'.format(inipath),
         ]
         py2 = testcase.name.lower().endswith('python2')

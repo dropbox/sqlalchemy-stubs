@@ -19,9 +19,9 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.sql.type_api import TypeEngine
 
 from typing import TypeVar, Optional
-T = TypeVar('T', bound=int)
+T = TypeVar('T', bound=Optional[int])
 
-def func(tp: TypeEngine[Optional[T]]) -> T: ...
+def func(tp: TypeEngine[T]) -> T: ...
 reveal_type(func(Integer()))  # N: Revealed type is 'builtins.int*'
 func(String())  # E: Value of type variable "T" of "func" cannot be "str"
 [out]
