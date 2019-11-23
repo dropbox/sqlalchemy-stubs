@@ -1,10 +1,10 @@
 from typing import (
-    Any, Optional, Union, Set, Generic, TypeVar, Type, List, Dict, Tuple, Set, Sequence as SequenceType, Mapping,
+    Any, Optional, Union, Generic, TypeVar, Type, List, Tuple, Set, Sequence as SequenceType, Mapping,
     Callable, Iterable, Iterator, overload
 )
 from . import visitors, functions
 from .base import SchemaEventTarget as SchemaEventTarget, DialectKWArgs as DialectKWArgs, ColumnCollection
-from .elements import ColumnClause as ColumnClause, TextClause
+from .elements import ColumnClause as ColumnClause, TextClause, ColumnElement
 from .selectable import TableClause as TableClause
 from .type_api import TypeEngine
 from .. import util
@@ -304,7 +304,7 @@ class Index(DialectKWArgs, ColumnCollectionMixin, SchemaItem):
     name: str = ...
     unique: bool = ...
     info: Optional[Mapping[str, Any]] = ...
-    def __init__(self, name: str, *expressions: Union[TextClause, Column[Any], str], unique: bool = ...,
+    def __init__(self, name: str, *expressions: Union[TextClause, ColumnElement[Any], str], unique: bool = ...,
                  quote: Optional[bool] = ..., info: Optional[Mapping[str, Any]] = ..., **kw: Any) -> None: ...
     @property
     def bind(self) -> Optional[Union[Engine, Connection]]: ...
