@@ -1,4 +1,4 @@
-from typing import Any, Optional, Dict, Union
+from typing import Any, Optional, Dict, Union, Text
 from sqlalchemy import log
 from sqlalchemy.sql.expression import ClauseElement
 from sqlalchemy.sql.functions import FunctionElement
@@ -103,7 +103,7 @@ class Engine(Connectable, log.Identified):
     def transaction(self, callable_, *args, **kwargs): ...
     def run_callable(self, callable_, *args, **kwargs): ...
     def execute(self,
-                object: Union[str, ClauseElement, FunctionElement, DDLElement, DefaultGenerator, Compiled],
+                object: Union[Text, ClauseElement, FunctionElement, DDLElement, DefaultGenerator, Compiled],
                 *multiparams: Any,
                 **params: Any) -> ResultProxy: ...
     def scalar(self, statement, *multiparams, **params): ...
