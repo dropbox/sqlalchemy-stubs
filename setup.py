@@ -42,7 +42,7 @@ def find_stub_files():
 
 
 setup(name='sqlalchemy-stubs',
-      version='0.2',
+      version='0.3',
       description=description,
       long_description=install_instructions,
       long_description_content_type='text/markdown',
@@ -52,8 +52,8 @@ setup(name='sqlalchemy-stubs',
       url="https://github.com/dropbox/sqlalchemy-stubs",
       py_modules=['sqlmypy', 'sqltyping'],
       install_requires=[
-          'mypy>=0.660',
-          'typing-extensions>=3.6.5'
+          'mypy>=0.720',
+          'typing-extensions>=3.7.4'
       ],
       packages=['sqlalchemy-stubs'],
       package_data={'sqlalchemy-stubs': find_stub_files()},
