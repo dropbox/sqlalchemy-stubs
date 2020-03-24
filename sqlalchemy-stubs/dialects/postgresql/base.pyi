@@ -87,7 +87,7 @@ class ENUM(sqltypes.NativeForEmulated, sqltypes.Enum):
     def drop(self, bind: Optional[Any] = ..., checkfirst: bool = ...): ...
 
 colspecs: Dict[Type[type_api.TypeEngine[Any]], Type[type_api.TypeEngine[Any]]]
-ischema_names: Dict[str, type_api.TypeEngine[Any]]
+ischema_names: Dict[str, Type[type_api.TypeEngine[Any]]]
 
 class PGCompiler(compiler.SQLCompiler):
     def visit_array(self, element: Any, **kw: Any): ...
