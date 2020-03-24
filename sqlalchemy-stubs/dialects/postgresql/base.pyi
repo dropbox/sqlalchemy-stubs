@@ -86,7 +86,7 @@ class ENUM(sqltypes.NativeForEmulated, sqltypes.Enum):
     def create(self, bind: Optional[Any] = ..., checkfirst: bool = ...): ...
     def drop(self, bind: Optional[Any] = ..., checkfirst: bool = ...): ...
 
-colspecs: Dict[type_api.TypeEngine[Any], type_api.TypeEngine[Any]]
+colspecs: Dict[Type[type_api.TypeEngine[Any]], Type[type_api.TypeEngine[Any]]]
 ischema_names: Dict[str, type_api.TypeEngine[Any]]
 
 class PGCompiler(compiler.SQLCompiler):
