@@ -10,10 +10,8 @@ _T = TypeVar('_T')
 _Q = TypeVar('_Q', bound="Query")
 
 
-# _T is set by a plugin to either a single type (eg. Query[MyModel]) or a tuple (Query[Tuple[int, str]])
 class Query(Generic[_T]):
     session: Session = ...
-    # TODO: should plugin also figure out generic args from "entities" param?
     def __init__(self, entities, session: Optional[Session] = ...) -> None: ...
 
     # TODO: is "statement" always of type sqlalchemy.sql.selectable.Select ?
