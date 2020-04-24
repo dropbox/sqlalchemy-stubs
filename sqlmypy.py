@@ -429,7 +429,7 @@ def session_query_hook(ctx: MethodContext) -> Type:
         session.query(User, User.id) -> Query[Tuple[User, int]]
         session.query(User.id) -> Query[Tuple[int]]
     """
-    # TODO take a look at Session.query_cls? Do we have to do this with generics?
+    # TODO: take a look at Session.query_cls? Do we have to do this with generics?
 
     cnt_entities = 0
 
@@ -443,19 +443,19 @@ def session_query_hook(ctx: MethodContext) -> Type:
             return arg.ret_type
 
         # Example:
-        # session.query(Employee.id, ...) -> Query[int, ...]
+        # session.query(Employee.id, Employee.name, ...) -> Query[Tuple[int, str, ...]]
         if isinstance(arg, Instance) and arg.type.fullname() == COLUMN_NAME:
             assert len(arg.args) == 1, "Column[...] should have only one generic argument"
             return arg.args[0]
 
         return AnyType(TypeOfAny.implementation_artifact)
 
-    # take positional arguments and map them
+    # Take positional arguments and map them.
     args = [map_arg(arg) for arg in ctx.arg_types[0]]
 
     if len(args) == 1 and (cnt_entities == 1 or isinstance(args[0], AnyType)):
-        # when there is a single class passed as an argument
-        # or when we can't detect what the single argument is (Any)
+        # When there is a single class passed as an argument
+        # or when we can't detect what the single argument is (Any).
         final_arg = args[0]
     else:
         fallback = ctx.api.named_type('sqlalchemy.util._collections.AbstractKeyedTuple')  # type: ignore

@@ -2,7 +2,6 @@ from typing import Any, Optional
 
 from sqlalchemy.orm.query import Query
 
-
 class _SessionClassMethods(object):
     @classmethod
     def close_all(cls): ...
