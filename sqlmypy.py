@@ -18,7 +18,7 @@ try:
 except ImportError:
     get_proper_type = lambda x: x
 
-from typing import Optional, Callable, Dict, List, TypeVar, Union, TYPE_CHECKING, Any
+from typing import Optional, Callable, Dict, List, TypeVar, Union
 
 MYPY = False  # we should support Python 3.5.1 and cases where typing_extensions is not available.
 if MYPY:
