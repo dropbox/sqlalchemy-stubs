@@ -31,9 +31,7 @@ class SQLDataSuite(DataSuite):
                  'sqlalchemy-sql-sqltypes.test',
                  'sqlalchemy-sql-selectable.test',
                  'sqlalchemy-sql-schema.test',
-                 'sqlalchemy-plugin-features.test',
-                 'sqlalchemy-plugin-query.test'
-                 ]
+                 'sqlalchemy-plugin-features.test']
     data_prefix = test_data_prefix
 
     def run_case(self, testcase: DataDrivenTestCase) -> None:

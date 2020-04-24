@@ -32,7 +32,6 @@ CLAUSE_ELEMENT_NAME = 'sqlalchemy.sql.elements.ClauseElement'  # type: Final
 COLUMN_ELEMENT_NAME = 'sqlalchemy.sql.elements.ColumnElement'  # type: Final
 GROUPING_NAME = 'sqlalchemy.sql.elements.Grouping'  # type: Final
 RELATIONSHIP_NAME = 'sqlalchemy.orm.relationships.RelationshipProperty'  # type: Final
-SESSION_QUERY_NAME = 'sqlalchemy.orm.session.Session.query'  # type: Final
 
 
 # See https://github.com/python/mypy/issues/6617 for plugin API updates.
@@ -89,12 +88,6 @@ class BasicSQLAlchemyPlugin(Plugin):
             # May be a model instantiation
             if is_declarative(sym.node):
                 return model_hook
-        return None
-
-    def get_method_hook(self, fullname: str) -> Optional[Callable[[MethodContext], Type]]:
-        if fullname == SESSION_QUERY_NAME:
-            return session_query_hook
-
         return None
 
     def get_dynamic_class_hook(self, fullname: str) -> 'CB[DynamicClassDefContext]':
@@ -416,52 +409,6 @@ def relationship_hook(ctx: FunctionContext) -> Type:
     return Instance(ctx.default_return_type.type, [new_arg],
                     line=ctx.default_return_type.line,
                     column=ctx.default_return_type.column)
-
-
-def session_query_hook(ctx: MethodContext) -> Type:
-    """
-    Turns session.query(...) into typed Query.
-
-    Examples:
-
-        session.query(User) -> Query[User]
-        session.query(User, Order) -> Query[Tuple[User, Order]]
-        session.query(User, User.id) -> Query[Tuple[User, int]]
-        session.query(User.id) -> Query[Tuple[int]]
-    """
-    # TODO: take a look at Session.query_cls? Do we have to do this with generics?
-
-    cnt_entities = 0
-
-    def map_arg(arg: Type) -> Type:
-        nonlocal cnt_entities
-        # A model class (well, in this case a callable constructor)
-        # Example:
-        # session.query(Employee) -> Query[Employee]
-        if isinstance(arg, CallableType) and arg.is_type_obj():
-            cnt_entities += 1
-            return arg.ret_type
-
-        # Example:
-        # session.query(Employee.id, Employee.name, ...) -> Query[Tuple[int, str, ...]]
-        if isinstance(arg, Instance) and arg.type.fullname() == COLUMN_NAME:
-            assert len(arg.args) == 1, "Column[...] should have only one generic argument"
-            return arg.args[0]
-
-        return AnyType(TypeOfAny.implementation_artifact)
-
-    # Take positional arguments and map them.
-    args = [map_arg(arg) for arg in ctx.arg_types[0]]
-
-    if len(args) == 1 and (cnt_entities == 1 or isinstance(args[0], AnyType)):
-        # When there is a single class passed as an argument
-        # or when we can't detect what the single argument is (Any).
-        final_arg = args[0]
-    else:
-        fallback = ctx.api.named_type('sqlalchemy.util._collections.AbstractKeyedTuple')  # type: ignore
-        final_arg = TupleType(args, fallback, implicit=True)
-
-    return ctx.api.named_generic_type("sqlalchemy.orm.Query", [final_arg])
 
 
 # We really need to add this to TypeChecker API
