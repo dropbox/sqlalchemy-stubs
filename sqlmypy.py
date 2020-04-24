@@ -1,16 +1,16 @@
 from mypy.mro import calculate_mro, MroError
 from mypy.plugin import (
     Plugin, FunctionContext, ClassDefContext, DynamicClassDefContext,
-    SemanticAnalyzerPluginInterface,
-    MethodContext)
+    SemanticAnalyzerPluginInterface
+)
 from mypy.plugins.common import add_method
 from mypy.nodes import (
     NameExpr, Expression, StrExpr, TypeInfo, ClassDef, Block, SymbolTable, SymbolTableNode, GDEF,
     Argument, Var, ARG_STAR2, MDEF, TupleExpr, RefExpr, FuncBase, SymbolNode
 )
 from mypy.types import (
-    UnionType, NoneTyp, Instance, Type, AnyType, TypeOfAny, UninhabitedType, CallableType,
-    TupleType)
+    UnionType, NoneTyp, Instance, Type, AnyType, TypeOfAny, UninhabitedType, CallableType
+)
 from mypy.typevars import fill_typevars_with_any
 
 try:
