@@ -178,6 +178,7 @@ class Other(Base):
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship, RelationshipProperty
+from typing import List
 
 Base = declarative_base()
 
