@@ -6,10 +6,11 @@ from . import visitors, functions
 from .base import SchemaEventTarget as SchemaEventTarget, DialectKWArgs as DialectKWArgs, ColumnCollection
 from .elements import ColumnClause as ColumnClause, TextClause, ColumnElement
 from .selectable import TableClause as TableClause
-from .type_api import TypeEngine
+from .type_api import TypeEngine, TypeDecorator, Variant
 from .. import util
 from ..engine import Engine, Connection, Connectable
 from ..engine.url import URL
+from ..dialects.postgres.array import ARRAY
 from .compiler import DDLCompiler
 from .expression import FunctionElement
 import threading
@@ -42,7 +43,7 @@ class Table(DialectKWArgs, SchemaItem, TableClause):  # type: ignore
     def __new__(cls, *args, **kw): ...
     @property
     def quote_schema(self) -> Optional[bool]: ...
-    def __init__(self, name: str, metadata: MetaData, *args: Any, autoload: bool = ..., autoload_replace: bool = ...,
+    def __init__(self, name: str, metadata: MetaData, *args: SchemaItem, autoload: bool = ..., autoload_replace: bool = ...,
                  autoload_with: Union[Engine, Connection] = ..., extend_existing: bool = ..., implicit_returning: bool = ...,
                  include_columns: SequenceType[str] = ..., info: Mapping[str, Any] = ..., keep_existing: bool = ...,
                  listeners: SequenceType[Tuple[str, Callable[..., Any]]] = ..., mustexist: bool = ...,
