@@ -26,7 +26,7 @@ class _stateful_declared_attr(declared_attr):
 
 def declarative_base(bind: Optional[Any] = ..., metadata: Optional[Any] = ...,
                      mapper: Optional[Any] = ..., cls: Any = ..., name: str = ...,
-                     constructor: Any = ..., class_registry: Optional[Any] = ..., metaclass: _T = Type[DeclarativeMeta]): _T
+                     constructor: Any = ..., class_registry: Optional[Any] = ..., metaclass: Type[_T] = Type[DeclarativeMeta]): _T
 def as_declarative(**kw): ...
 
 class ConcreteBase(object):
