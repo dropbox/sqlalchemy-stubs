@@ -36,3 +36,23 @@ main:6: error: No overload variant of "UnicodeText" matches argument types "int"
 main:6: note: Possible overload variant:
 main:6: note:     def __init__(self, length: Optional[int] = ..., collation: Optional[str] = ..., convert_unicode: str = ..., unicode_error: Optional[str] = ..., _warn_on_bytestring: bool = ...) -> UnicodeText
 main:6: note:     <1 more non-matching overload not shown>
+
+[case testFloatAndDecimal]
+from decimal import Decimal
+from sqlalchemy import Column, Float, Numeric, Integer
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+class Numbers(Base):
+    __tablename__ = "numbers"
+    id_ = Column(Integer, primary_key=True)
+
+    c_numeric = Column(Numeric, nullable=False)
+    c_float = Column(Float, nullable=False)
+
+numbers_float = Numbers(c_numeric=1.0, c_float=1.0)
+numbers_decimal = Numbers(c_numeric=Decimal(1.0), c_float=Decimal(1.0))
+[out]
+main:14: error: Incompatible type for "c_numeric" of "Numbers" (got "float", expected "Decimal")
+main:15: error: Incompatible type for "c_float" of "Numbers" (got "Decimal", expected "float")
