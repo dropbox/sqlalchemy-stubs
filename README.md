@@ -5,6 +5,7 @@ Mypy plugin and stubs for SQLAlchemy
 
 [![Build Status](https://travis-ci.org/dropbox/sqlalchemy-stubs.svg?branch=master)](https://travis-ci.org/dropbox/sqlalchemy-stubs)
 [![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
+[![PyPI version](https://badge.fury.io/py/sqlalchemy-stubs.svg)](https://pypi.python.org/pypi/sqlalchemy-stubs/)
 
 This package contains [type stubs](https://www.python.org/dev/peps/pep-0561/) and a
 [mypy plugin](https://mypy.readthedocs.io/en/latest/extending_mypy.html#extending-mypy-using-plugins)
