@@ -1,12 +1,19 @@
 from ... import schema
 from ...engine import default, reflection
 from ...sql import compiler, expression, sqltypes, type_api
-from typing import Any, Optional, Set, Type, Text, Pattern, Dict
+from typing import Any, Optional, Set, Type, Text, Pattern, Dict, TypeVar, overload
 from datetime import timedelta
+import uuid
+import sys
 
 from sqlalchemy.types import INTEGER as INTEGER, BIGINT as BIGINT, SMALLINT as SMALLINT, VARCHAR as VARCHAR, \
     CHAR as CHAR, TEXT as TEXT, FLOAT as FLOAT, NUMERIC as NUMERIC, \
     DATE as DATE, BOOLEAN as BOOLEAN, REAL as REAL
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 AUTOCOMMIT_REGEXP: Pattern[Text]
 RESERVED_WORDS: Set[str]
@@ -66,10 +73,17 @@ class BIT(sqltypes.TypeEngine[str]):
     def __init__(self, length: Optional[int] = ..., varying: bool = ...) -> None: ...
 PGBit = BIT
 
-class UUID(sqltypes.TypeEngine[str]):
+_T = TypeVar("_T")
+
+class UUID(sqltypes.TypeEngine[_T]):
     __visit_name__: str = ...
     as_uuid: bool = ...
-    def __init__(self, as_uuid: bool = ...) -> None: ...
+    @overload
+    def __new__(self, as_uuid: Literal[True]) -> UUID[sqltypes.TypeEngine[uuid.UUID]]: ...
+    @overload
+    def __new__(self, as_uuid: Literal[False, None]) -> UUID[sqltypes.TypeEngine[str]]: ...
+    @overload
+    def __new__(self) -> UUID[sqltypes.TypeEngine[str]]: ...
     def bind_processor(self, dialect: Any): ...
     def result_processor(self, dialect: Any, coltype: Any): ...
 PGUuid = UUID
