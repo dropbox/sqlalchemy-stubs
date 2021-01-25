@@ -31,6 +31,7 @@ from .descriptor_props import (
 from .relationships import foreign as foreign, remote as remote
 from .session import (
     Session as Session,
+    close_all_sessions as close_all_sessions,
     object_session as object_session,
     sessionmaker as sessionmaker,
     make_transient as make_transient,

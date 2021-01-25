@@ -131,7 +131,6 @@ Base = declarative_base()
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship, RelationshipProperty
-from typing import Iterable
 
 Base = declarative_base()
 
@@ -144,7 +143,7 @@ class User(Base):
 
 user = User()
 reveal_type(user.first_other)  # N: Revealed type is 'main.Other*'
-reveal_type(user.second_other)  # N: Revealed type is 'typing.Iterable*[main.Other]'
+reveal_type(user.second_other)  # N: Revealed type is 'builtins.list*[main.Other]'
 
 class Other(Base):
     __tablename__ = 'other'
@@ -155,7 +154,6 @@ class Other(Base):
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship, RelationshipProperty
-from typing import Iterable
 
 Base = declarative_base()
 
@@ -169,7 +167,7 @@ class User(Base):
 
 user = User()
 reveal_type(user.first_other)  # N: Revealed type is 'main.Other*'
-reveal_type(user.second_other)  # N: Revealed type is 'typing.Iterable*[main.Other]'
+reveal_type(user.second_other)  # N: Revealed type is 'builtins.list*[main.Other]'
 
 class Other(Base):
     __tablename__ = 'other'
@@ -180,7 +178,7 @@ class Other(Base):
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship, RelationshipProperty
-from typing import Iterable
+from typing import List
 
 Base = declarative_base()
 
@@ -188,9 +186,9 @@ class User(Base):
     __tablename__ = 'users'
     id = Column(Integer(), primary_key=True)
     first_other: RelationshipProperty[Other] = relationship('Other')
-    second_other: RelationshipProperty[Iterable[Other]] = relationship(Other, uselist=True)
+    second_other: RelationshipProperty[List[Other]] = relationship(Other, uselist=True)
     third_other: RelationshipProperty[Other] = relationship(Other, uselist=False)
-    bad_other: RelationshipProperty[Other] = relationship('Other', uselist=True)  # E: Incompatible types in assignment (expression has type "RelationshipProperty[Iterable[Other]]", variable has type "RelationshipProperty[Other]")
+    bad_other: RelationshipProperty[Other] = relationship('Other', uselist=True)  # E: Incompatible types in assignment (expression has type "RelationshipProperty[List[Other]]", variable has type "RelationshipProperty[Other]")
 
 class Other(Base):
     __tablename__ = 'other'
