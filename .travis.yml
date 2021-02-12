@@ -48,8 +48,10 @@ jobs:
 
 
 before_install: |
-  # Upgrade pip, setuptools, and wheel
-  pip install -U pip setuptools wheel
+  # Upgrade pip to the last version that supported python 3.5
+  pip install -Iv pip==20.3.4
+  # Upgrade setuptools, and wheel
+  pip install -U setuptools wheel
 
 install: |
   pip install -Ur external/mypy/test-requirements.txt
