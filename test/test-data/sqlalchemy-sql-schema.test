@@ -76,3 +76,38 @@ test_table = Table('test', metadata,
     Index('idx1', 'id', text("lower(name)")),
 )
 [out]
+
+[case testColumnWithForeignKeyThroughTableArgsAsColumn]
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, ForeignKeyConstraint, Integer
+
+Base = declarative_base()
+
+class Profile(Base):
+    __tablename__ = "profile"
+    id = Column(Integer, primary_key=True)
+
+class User(Base):
+
+    __tablename__ = "user"
+    artkey = Column(Integer, primary_key=True)
+    profile_id = Column(Integer, nullable=False)
+    __table_args__ = (ForeignKeyConstraint([profile_id], [Profile.id]), )
+[out]
+
+[case testColumnWithForeignKeyThroughTableArgsAsString]
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, ForeignKeyConstraint, Integer
+
+Base = declarative_base()
+
+class Profile(Base):
+    __tablename__ = "profile"
+    id = Column(Integer, primary_key=True)
+
+class User(Base):
+    __tablename__ = "user"
+    id = Column(Integer, primary_key=True)
+    profile_id = Column(Integer, nullable=False)
+    __table_args__ = (ForeignKeyConstraint(["profile_id"], [Profile.id]), )
+[out]
