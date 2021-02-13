@@ -1,8 +1,9 @@
 from ... import schema
 from ...engine import default, reflection
 from ...sql import compiler, expression, sqltypes, type_api
-from typing import Any, Optional, Set, Type, Text, Pattern, Dict
+from typing import Any, Optional, Set, Type, Text, Pattern, Dict, Union
 from datetime import timedelta
+import uuid
 
 from sqlalchemy.types import INTEGER as INTEGER, BIGINT as BIGINT, SMALLINT as SMALLINT, VARCHAR as VARCHAR, \
     CHAR as CHAR, TEXT as TEXT, FLOAT as FLOAT, NUMERIC as NUMERIC, \
@@ -66,7 +67,7 @@ class BIT(sqltypes.TypeEngine[str]):
     def __init__(self, length: Optional[int] = ..., varying: bool = ...) -> None: ...
 PGBit = BIT
 
-class UUID(sqltypes.TypeEngine[str]):
+class UUID(sqltypes.TypeEngine[Union[str, uuid.UUID]]):
     __visit_name__: str = ...
     as_uuid: bool = ...
     def __init__(self, as_uuid: bool = ...) -> None: ...
