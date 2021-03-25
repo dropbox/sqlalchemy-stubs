@@ -298,6 +298,9 @@ class CollectionAggregate(UnaryExpression[_T]):
     @overload
     @classmethod
     def _create_any(cls, expr: ClauseElement) -> CollectionAggregate[Any]: ...
+    @overload
+    @classmethod
+    def _create_any(cls, expr: Iterable[Any]) -> CollectionAggregate[Any]: ...
 
 _AB = TypeVar('_AB', bound=AsBoolean)
 
