@@ -1,6 +1,6 @@
 import sys
 
-from typing import Any, List, Mapping, Optional, Iterator, Union, AbstractSet, Tuple
+from typing import Any, List, Mapping, Optional, Iterable, Iterator, Union, AbstractSet, Tuple
 from ..sql.schema import Column
 
 if sys.version_info >= (3, 0):
@@ -10,7 +10,7 @@ else:
 
 def rowproxy_reconstructor(cls, state): ...
 
-class BaseRowProxy(Mapping[str, Any]):
+class BaseRowProxy(Iterable[Any], Mapping[str, Any]):
     def __init__(self, parent, row, processors, keymap) -> None: ...
     def __reduce__(self): ...
     def values(self): ...
