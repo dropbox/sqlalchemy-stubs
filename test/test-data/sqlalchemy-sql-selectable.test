@@ -76,3 +76,12 @@ t1 = table('user', column('id'), column('name'), column('description'), column('
 t2 = table('stuff', column('id'))
 t1.join(t2).select().with_for_update(of=t1)
 [out]
+
+[case testSubquery]
+from sqlalchemy import column, select, table
+
+t = table('stuff', column('id'))
+subq = select(t.c).subquery()
+select(t.c).where(t.c.id.in_(subq))
+select(t.c).select_from(t.join(subq))
+[out]
