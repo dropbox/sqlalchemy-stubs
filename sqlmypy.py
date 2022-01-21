@@ -200,7 +200,9 @@ def decl_info_hook(ctx: DynamicClassDefContext) -> None:
 
     info = TypeInfo(SymbolTable(), class_def, ctx.api.cur_mod_id)
     class_def.info = info
-    obj = ctx.api.builtin_type('builtins.object')
+    # use builtin_type if it exists, otherwise named_type
+    # mypy .930 deprecated builtin_type, but it was added back in in .931
+    obj = ctx.api.builtin_type('builtins.object') if hasattr(ctx.api, "builtin_type") else ctx.api.named_type('builtins.object')
     info.bases = cls_bases or [obj]
     try:
         calculate_mro(info)
