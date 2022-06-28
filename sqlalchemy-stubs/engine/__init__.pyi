@@ -30,5 +30,7 @@ from .result import (
     RowProxy as RowProxy,
 )
 
+from .row import Row
+
 def create_engine(*args: Any, **kwargs: Any) -> Engine: ...
 def engine_from_config(configuration: Any, prefix: str = ..., **kwargs: Any) -> Engine: ...
