@@ -396,10 +396,10 @@ def relationship_hook(ctx: FunctionContext) -> Type:
             # Something complex, stay silent for now.
             new_arg = AnyType(TypeOfAny.special_form)
 
-    # We figured out, the model type. Now check if we need to wrap it in Iterable
+    # We figured out, the model type. Now check if we need to wrap it in List
     if uselist_arg:
         if parse_bool(uselist_arg):
-            new_arg = ctx.api.named_generic_type('typing.Iterable', [new_arg])
+            new_arg = ctx.api.named_generic_type('builtins.list', [new_arg])
     else:
         if has_annotation:
             # If there is an annotation we use it as a source of truth.

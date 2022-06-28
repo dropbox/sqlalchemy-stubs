@@ -3,13 +3,19 @@ import builtins
 from typing import Any, Optional, Text
 import threading as threading
 from collections import namedtuple as namedtuple
-from io import BytesIO as byte_buffer
+from io import BytesIO
 from io import StringIO as StringIO
 from inspect import getargspec as inspect_getfullargspec
-from operator import attrgetter as dottedgetter
+from operator import attrgetter
+
+byte_buffer = BytesIO
+dottedgetter = attrgetter
+
 if sys.version_info < (3, 0):
-    from itertools import izip_longest as zip_longest
-    import cPickle as pickle
+    from itertools import izip_longest
+    zip_longest = izip_longest
+    import cPickle
+    pickle = cPickle
     from urllib import quote_plus as quote_plus, unquote_plus as unquote_plus, quote as quote, unquote as unquote
     from urlparse import parse_qsl as parse_qsl
 else:

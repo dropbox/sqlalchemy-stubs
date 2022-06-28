@@ -23,8 +23,13 @@ jobs:
     script: |
       set -e
       pytest
+  - name: "run test suite with python 3.8"
+    python: 3.8
+    script: |
+      set -e
+      pytest
   - name: "run typecheck on stubs"
-    python: 3.7
+    python: 3.8
     script: |
       set -e
       mkdir tmpd
@@ -32,19 +37,21 @@ jobs:
       cd tmpd
       python3 -m mypy -p sqlalchemy
   - name: "run flake8 on stubs"
-    python: 3.7
+    python: 3.8
     script: |
       flake8 sqlalchemy-stubs
   - name: "run typecheck on plugin"
-    python: 3.7
+    python: 3.8
     script: |
       set -e
       MYPYPATH=external/mypy python3 -m mypy --config-file external/mypy/mypy_self_check.ini sqlmypy.py
 
 
 before_install: |
-  # Upgrade pip, setuptools, and wheel
-  pip install -U pip setuptools wheel
+  # Upgrade pip to the last version that supported python 3.5
+  pip install -Iv pip==20.3.4
+  # Upgrade setuptools, and wheel
+  pip install -U setuptools wheel
 
 install: |
   pip install -Ur external/mypy/test-requirements.txt
