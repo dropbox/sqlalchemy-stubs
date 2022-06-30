@@ -1,3 +1,4 @@
+
 from .sql import (
     alias as alias,
     all_ as all_,
@@ -140,3 +141,5 @@ from . import pool as pool
 from . import processors as processors
 from . import schema as schema
 from . import types as types
+
+__version__ = ...
