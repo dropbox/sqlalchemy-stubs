@@ -1,3 +1,4 @@
+from _typeshed import SupportsKeysAndGetItem
 from typing import (
     Any, Optional, Union, FrozenSet, Generic, Type, TypeVar, Set, Iterator, Iterable, Tuple, List, Callable, Dict, Mapping,
     AbstractSet, overload
@@ -82,7 +83,7 @@ class OrderedDict(Dict[_KT, _VT]):
     else:
         def sort(self, *, key: Optional[Callable[[_VT], Any]] = ..., reverse: bool = ...) -> None: ...
     @overload
-    def update(self, ____sequence: Mapping[_KT, _VT], **kwargs: _VT) -> None: ...
+    def update(self, ____sequence: SupportsKeysAndGetItem[_KT, _VT], **kwargs: _VT) -> None: ...
     @overload
     def update(self, ____sequence: Iterable[Tuple[_KT, _VT]], **kwargs: _VT) -> None: ...
     @overload
