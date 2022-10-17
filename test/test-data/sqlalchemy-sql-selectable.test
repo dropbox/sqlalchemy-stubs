@@ -114,10 +114,14 @@ main:24: note:     Got:
 main:24: note:         def __iter__(self) -> Iterator[str]
 main:25: error: List item 1 has incompatible type "str"; expected "Union[None, float, Visitable]"
 main:26: error: No overload variant of "Exists" matches argument types "bool", "List[bool]"
-main:26: note: Possible overload variant:
+main:26: note: Possible overload variants:
+main:26: note:     def __init__(self, arg: Union[None, bool, int, float, SelectBase, ScalarSelect[Any], ColumnClause[Any]], **kwargs: Any) -> Exists
+main:26: note:     def __init__(self, arg: Tuple[Union[SelectBase, ScalarSelect[Any]]], **kwargs: Any) -> Exists
+main:26: note:     def __init__(self, arg: Iterable[Union[None, bool, int, float, Visitable, ColumnClause[Any]]], **kwargs: Any) -> Exists
 main:26: note:     def __init__(self, *args: Union[None, bool, int, float, ColumnClause[Any]], **kwargs: Any) -> Exists
-main:26: note:     <3 more non-matching overloads not shown>
 main:27: error: No overload variant of "Exists" matches argument types "int", "Select"
-main:27: note: Possible overload variant:
+main:27: note: Possible overload variants:
+main:27: note:     def __init__(self, arg: Union[None, bool, int, float, SelectBase, ScalarSelect[Any], ColumnClause[Any]], **kwargs: Any) -> Exists
+main:27: note:     def __init__(self, arg: Tuple[Union[SelectBase, ScalarSelect[Any]]], **kwargs: Any) -> Exists
+main:27: note:     def __init__(self, arg: Iterable[Union[None, bool, int, float, Visitable, ColumnClause[Any]]], **kwargs: Any) -> Exists
 main:27: note:     def __init__(self, *args: Union[None, bool, int, float, ColumnClause[Any]], **kwargs: Any) -> Exists
-main:27: note:     <3 more non-matching overloads not shown>
