@@ -61,7 +61,7 @@ pip install -U sqlalchemy-stubs
 *Important*: you need to enable the plugin in your mypy config file:
 ```
 [mypy]
-plugins = sqlmypy
+plugins = "sqlmypy"
 ```
 
 To install the development version of the package:
