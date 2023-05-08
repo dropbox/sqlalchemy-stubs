@@ -6,7 +6,7 @@ from . import visitors, functions
 from .base import SchemaEventTarget as SchemaEventTarget, DialectKWArgs as DialectKWArgs, ColumnCollection
 from .elements import ColumnClause as ColumnClause, TextClause, ColumnElement
 from .selectable import TableClause as TableClause
-from .type_api import TypeEngine
+from .type_api import TypeEngine, TypeDecorator, Variant
 from .. import util
 from ..engine import Engine, Connection, Connectable
 from ..engine.url import URL
