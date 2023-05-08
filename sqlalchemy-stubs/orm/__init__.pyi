@@ -41,6 +41,7 @@ from .scoping import scoped_session as scoped_session
 from . import mapper as mapperlib
 from .query import AliasOption as AliasOption, Query as Query, Bundle as Bundle
 from .strategy_options import Load as Load
+from ..ext.declarative import DeclarativeMeta
 
 def create_session(bind: Optional[Any] = ..., **kwargs): ...
 
