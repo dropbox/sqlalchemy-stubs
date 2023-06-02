@@ -6,12 +6,12 @@ from .mapper import (
     class_mapper as class_mapper,
     configure_mappers as configure_mappers,
     reconstructor as reconstructor,
-    validates as validates
+    validates as validates,
 )
 from .interfaces import (
     EXT_CONTINUE as EXT_CONTINUE,
     EXT_STOP as EXT_STOP,
-    PropComparator as PropComparator
+    PropComparator as PropComparator,
 )
 from .util import (
     aliased as aliased,
@@ -21,14 +21,15 @@ from .util import (
     polymorphic_union as polymorphic_union,
     was_deleted as was_deleted,
     with_parent as with_parent,
-    with_polymorphic as with_polymorphic
+    with_polymorphic as with_polymorphic,
 )
+from .attributes import Mapped as Mapped
 from .properties import ColumnProperty as ColumnProperty
 from .relationships import RelationshipProperty as RelationshipProperty
 from .descriptor_props import (
     ComparableProperty as ComparableProperty,
     CompositeProperty as CompositeProperty,
-    SynonymProperty as SynonymProperty
+    SynonymProperty as SynonymProperty,
 )
 from .relationships import foreign as foreign, remote as remote
 from .session import (
@@ -37,7 +38,7 @@ from .session import (
     object_session as object_session,
     sessionmaker as sessionmaker,
     make_transient as make_transient,
-    make_transient_to_detached as make_transient_to_detached
+    make_transient_to_detached as make_transient_to_detached,
 )
 from .scoping import scoped_session as scoped_session
 from . import mapper as mapperlib
@@ -55,7 +56,6 @@ column_property = ColumnProperty
 composite = CompositeProperty
 
 def query_expression() -> ColumnProperty: ...
-
 def backref(name, **kwargs): ...
 def deferred(*columns, **kw): ...
 
