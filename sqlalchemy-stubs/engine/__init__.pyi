@@ -30,5 +30,10 @@ from .result import (
     RowProxy as RowProxy,
 )
 
+from .url import (
+    URL as URL,
+    make_url as make_url,
+)
+
 def create_engine(*args: Any, **kwargs: Any) -> Engine: ...
 def engine_from_config(configuration: Any, prefix: str = ..., **kwargs: Any) -> Engine: ...
