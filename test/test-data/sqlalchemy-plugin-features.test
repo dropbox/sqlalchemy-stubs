@@ -5,7 +5,7 @@ from base import Base
 from typing import Optional
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer(), primary_key=True)
     name = Column(String())
 
@@ -30,7 +30,7 @@ from base import Base
 from typing import Optional
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer(), primary_key=True)
     name = Column(String())
 
@@ -61,12 +61,12 @@ class HasId:
     id = Column(Integer, primary_key=True)
 
 class User(Base, HasId):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     name = Column(String, nullable=False)
 
 user = User(id=123, name="John Doe")
-reveal_type(user.id)  # N: Revealed type is 'builtins.int*'
+reveal_type(user.id)  # N: Revealed type is "builtins.int"
 [out]
 
 [case testModelInitProperMro]
@@ -80,14 +80,14 @@ class Defaults:
     id = Column(Integer, primary_key=True)
 
 class User(Base, Defaults):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     # By default mypy will complain about Column[str] not being compatible with Column[int].
     # Adding "ignore" should allow us to override column type.
     id = Column(String, primary_key=True)  # type: ignore
     name = Column(String, nullable=False)
 
-User(id='stringish-id')
+User(id="stringish-id")
 User(id=123)  # E: Incompatible type for "id" of "User" (got "int", expected "str")
 [out]
 
@@ -101,9 +101,9 @@ if TYPE_CHECKING:
     from other import Other
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer(), primary_key=True)
-    other = relationship('Other', uselist=False)
+    other = relationship("Other", uselist=False)
     many_others = relationship(Other, uselist=True)
 
 o: Other
@@ -118,7 +118,7 @@ from sqlalchemy import Column, Integer, String
 from base import Base
 
 class Other(Base):
-    __tablename__ = 'other'
+    __tablename__ = "other"
     id = Column(Integer(), primary_key=True)
     name = Column(String(), nullable=False)
 
@@ -135,18 +135,18 @@ from sqlalchemy.orm import relationship, RelationshipProperty
 Base = declarative_base()
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer(), primary_key=True)
     first_other = relationship(Other)
     second_other = relationship(Other, uselist=True)
     bad_other: RelationshipProperty[int] = relationship(Other, uselist=False)  # E: Incompatible types in assignment (expression has type "RelationshipProperty[Other]", variable has type "RelationshipProperty[int]")
 
 user = User()
-reveal_type(user.first_other)  # N: Revealed type is 'main.Other*'
-reveal_type(user.second_other)  # N: Revealed type is 'builtins.list*[main.Other]'
+reveal_type(user.first_other)  # N: Revealed type is "main.Other"
+reveal_type(user.second_other)  # N: Revealed type is "builtins.list[main.Other]"
 
 class Other(Base):
-    __tablename__ = 'other'
+    __tablename__ = "other"
     id = Column(Integer(), primary_key=True)
 [out]
 
@@ -158,19 +158,19 @@ from sqlalchemy.orm import relationship, RelationshipProperty
 Base = declarative_base()
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer(), primary_key=True)
-    first_other = relationship('Other', uselist=False)
-    second_other = relationship('Other', uselist=True)
-    second_bad_other = relationship('What')  # E: Cannot find model "What" \
+    first_other = relationship("Other", uselist=False)
+    second_other = relationship("Other", uselist=True)
+    second_bad_other = relationship("What")  # E: Cannot find model "What" \
                                              # N: Only imported models can be found; use "if TYPE_CHECKING: ..." to avoid import cycles
 
 user = User()
-reveal_type(user.first_other)  # N: Revealed type is 'main.Other*'
-reveal_type(user.second_other)  # N: Revealed type is 'builtins.list*[main.Other]'
+reveal_type(user.first_other)  # N: Revealed type is "main.Other"
+reveal_type(user.second_other)  # N: Revealed type is "builtins.list[main.Other]"
 
 class Other(Base):
-    __tablename__ = 'other'
+    __tablename__ = "other"
     id = Column(Integer(), primary_key=True)
 [out]
 
@@ -183,15 +183,15 @@ from typing import List
 Base = declarative_base()
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer(), primary_key=True)
-    first_other: RelationshipProperty[Other] = relationship('Other')
+    first_other: RelationshipProperty[Other] = relationship("Other")
     second_other: RelationshipProperty[List[Other]] = relationship(Other, uselist=True)
     third_other: RelationshipProperty[Other] = relationship(Other, uselist=False)
-    bad_other: RelationshipProperty[Other] = relationship('Other', uselist=True)  # E: Incompatible types in assignment (expression has type "RelationshipProperty[List[Other]]", variable has type "RelationshipProperty[Other]")
+    bad_other: RelationshipProperty[Other] = relationship("Other", uselist=True)  # E: Incompatible types in assignment (expression has type "RelationshipProperty[List[Other]]", variable has type "RelationshipProperty[Other]")
 
 class Other(Base):
-    __tablename__ = 'other'
+    __tablename__ = "other"
     id = Column(Integer(), primary_key=True)
 [out]
 
@@ -202,12 +202,12 @@ from sqlalchemy import Column, Integer, String
 Base = declarative_base()
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer(), primary_key=True)
-    name = Column(String(), default='John Doe', nullable=True)
+    name = Column(String(), default="John Doe", nullable=True)
 
 user: User
-reveal_type(User.name)  # N: Revealed type is 'sqlalchemy.sql.schema.Column[Union[builtins.str, None]]'
+reveal_type(User.name)  # N: Revealed type is "sqlalchemy.sql.schema.Column[Union[builtins.str, None]]"
 [out]
 
 [case testAddedAttributesDeclared]
@@ -217,13 +217,13 @@ from sqlalchemy import Column, Integer, String
 Base = declarative_base()
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer(), primary_key=True)
-    name = Column(String(), default='John Doe', nullable=True)
+    name = Column(String(), default="John Doe", nullable=True)
 
 user: User
-reveal_type(User.metadata)  # N: Revealed type is 'sqlalchemy.sql.schema.MetaData'
-reveal_type(User.__table__)  # N: Revealed type is 'sqlalchemy.sql.schema.Table'
+reveal_type(User.metadata)  # N: Revealed type is "sqlalchemy.sql.schema.MetaData"
+reveal_type(User.__table__)  # N: Revealed type is "sqlalchemy.sql.schema.Table"
 [out]
 
 [case testAddedAttributedDecorated]
@@ -235,13 +235,13 @@ class Base:
     ...
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer(), primary_key=True)
-    name = Column(String(), default='John Doe', nullable=True)
+    name = Column(String(), default="John Doe", nullable=True)
 
 user: User
-reveal_type(User.metadata)  # N: Revealed type is 'sqlalchemy.sql.schema.MetaData'
-reveal_type(User.__table__)  # N: Revealed type is 'sqlalchemy.sql.schema.Table'
+reveal_type(User.metadata)  # N: Revealed type is "sqlalchemy.sql.schema.MetaData"
+reveal_type(User.__table__)  # N: Revealed type is "sqlalchemy.sql.schema.Table"
 [out]
 
 [case testKwArgsModelOK]
@@ -251,11 +251,11 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     name = Column(String)
 
-record = {'name': 'John Doe'}
+record = {"name": "John Doe"}
 User(**record)  # OK
 [out]
 
@@ -263,20 +263,20 @@ User(**record)  # OK
 from sqlalchemy import Column, String, text
 from sqlalchemy.sql.elements import Grouping
 
-reveal_type(Grouping(Column(String, nullable=False)))  # N: Revealed type is 'sqlalchemy.sql.elements.Grouping[builtins.str*]'
-reveal_type(Grouping(text('foo')))  # N: Revealed type is 'sqlalchemy.sql.elements.Grouping[None]'
+reveal_type(Grouping(Column(String, nullable=False)))  # N: Revealed type is "sqlalchemy.sql.elements.Grouping[builtins.str]"
+reveal_type(Grouping(text("foo")))  # N: Revealed type is "sqlalchemy.sql.elements.Grouping[None]"
 
 [case testDeclarativeBaseWithBaseClass]
 from sqlalchemy import Column, Integer, String
 from base import Base
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer(), primary_key=True)
     name = Column(String())
 
 user: User
-reveal_type(user.f())  # N: Revealed type is 'builtins.str'
+reveal_type(user.f())  # N: Revealed type is "builtins.str"
 
 [file base.py]
 from sqlalchemy.ext.declarative import declarative_base
@@ -291,13 +291,13 @@ from sqlalchemy import Column, Integer, String
 from base import Base
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer(), primary_key=True)
     name = Column(String())
 
 user: User
-reveal_type(user.f())  # N: Revealed type is 'builtins.str'
-reveal_type(user.g())  # N: Revealed type is 'builtins.int'
+reveal_type(user.f())  # N: Revealed type is "builtins.str"
+reveal_type(user.g())  # N: Revealed type is "builtins.int"
 
 [file base.py]
 from sqlalchemy.ext.declarative import declarative_base
@@ -317,5 +317,5 @@ class M1:
 class M2(M1):
     ...
 Base = declarative_base(cls=(M1, M2))  # E: Not able to calculate MRO for declarative base
-reveal_type(Base)  # N: Revealed type is 'Any'
+reveal_type(Base)  # N: Revealed type is "Any"
 [out]

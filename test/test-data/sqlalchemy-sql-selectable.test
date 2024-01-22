@@ -76,3 +76,52 @@ t1 = table('user', column('id'), column('name'), column('description'), column('
 t2 = table('stuff', column('id'))
 t1.join(t2).select().with_for_update(of=t1)
 [out]
+
+[case testExists]
+from sqlalchemy import table, select, column, exists, literal, literal_column
+
+t = table('table', column('id'), column('n'))
+
+select([literal("1")]).where(~exists([t.c.id]))
+exists((t.c.id,))
+exists([t.c.id, 1])
+exists(1, t.c.id)
+exists(select(2))
+exists(literal_column("x"))
+exists([literal_column("x")])
+exists([None])
+exists((None,))
+exists(None)
+exists(1)
+exists([11])
+exists([1, 2, None])
+exists(iter([1, 2, None]))
+exists(0.0)
+exists(True)
+exists(True, False)
+exists()
+
+exists("fail")
+exists([1, "fail"])
+exists(True, [False])
+exists(1, select(2))
+[out]
+main:24: error: Argument 1 to "Exists" has incompatible type "str"; expected "Iterable[Union[None, bool, int, float, Visitable, ColumnClause[Any]]]"
+main:24: note: Following member(s) of "str" have conflicts:
+main:24: note:     Expected:
+main:24: note:         def __iter__(self) -> Iterator[Union[None, bool, int, float, Visitable, ColumnClause[Any]]]
+main:24: note:     Got:
+main:24: note:         def __iter__(self) -> Iterator[str]
+main:25: error: List item 1 has incompatible type "str"; expected "Union[None, float, Visitable]"
+main:26: error: No overload variant of "Exists" matches argument types "bool", "List[bool]"
+main:26: note: Possible overload variants:
+main:26: note:     def __init__(self, arg: Union[None, bool, int, float, SelectBase, ScalarSelect[Any], ColumnClause[Any]], **kwargs: Any) -> Exists
+main:26: note:     def __init__(self, arg: Tuple[Union[SelectBase, ScalarSelect[Any]]], **kwargs: Any) -> Exists
+main:26: note:     def __init__(self, arg: Iterable[Union[None, bool, int, float, Visitable, ColumnClause[Any]]], **kwargs: Any) -> Exists
+main:26: note:     def __init__(self, *args: Union[None, bool, int, float, ColumnClause[Any]], **kwargs: Any) -> Exists
+main:27: error: No overload variant of "Exists" matches argument types "int", "Select"
+main:27: note: Possible overload variants:
+main:27: note:     def __init__(self, arg: Union[None, bool, int, float, SelectBase, ScalarSelect[Any], ColumnClause[Any]], **kwargs: Any) -> Exists
+main:27: note:     def __init__(self, arg: Tuple[Union[SelectBase, ScalarSelect[Any]]], **kwargs: Any) -> Exists
+main:27: note:     def __init__(self, arg: Iterable[Union[None, bool, int, float, Visitable, ColumnClause[Any]]], **kwargs: Any) -> Exists
+main:27: note:     def __init__(self, *args: Union[None, bool, int, float, ColumnClause[Any]], **kwargs: Any) -> Exists
